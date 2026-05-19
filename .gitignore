@@ -216,3 +216,39 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Project-specific ---------------------------------------------
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Raw Kaggle dumps are reproducible from a documented URL — do not commit.
+data/raw/*
+!data/raw/README.md
+!data/raw/.gitkeep
+
+# Intermediate pipeline outputs are derived — do not commit.
+data/interim/*
+!data/interim/.gitkeep
+
+# Processed CSVs MAY be committed if small (< 25 MB total); otherwise rely on
+# `make build` to regenerate. Uncomment to ignore them entirely.
+# data/processed/*
+# !data/processed/.gitkeep
+
+# Course materials (often copyrighted) — see documents/README.md
+documents/*
+!documents/README.md
+
+# Power BI scratch
+*.tmp
+*.bak
+~$*.pbix
+
+# Report figures are derived from the dashboard / pipeline
+report/figures/*
+!report/figures/.gitkeep
+
+# Notebooks — committed individually, but no scratch dirs
+notebooks/.ipynb_checkpoints/
