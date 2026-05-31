@@ -2,7 +2,7 @@
 
 > Status: **Draft v1** — awaiting human review before proceeding to Plan / Tasks / Implementation.
 > Owner: 5-member university team, Data Visualization course.
-> Last updated: 2026-05-19.
+> Last updated: 2026-05-31 (revised at Gate G1 to match the profiled dataset — see §7, §9 and `powerbi/data_model.md`).
 
 ---
 
@@ -28,7 +28,7 @@ Since the dashboard's analytical thesis hinges on **audio features** (danceabili
 - [ ] One end-to-end Python pipeline run (`make build`) produces a `data/processed/` directory containing the star-schema CSVs from a fresh clone, with **zero manual steps** other than placing the raw Kaggle file(s) into `data/raw/`.
 - [ ] Processed CSVs satisfy the star-schema contract: every foreign-key value in `Fact_TrackSnapshot` resolves to exactly one row in the corresponding dimension table (validated by `pytest`).
 - [ ] No row in `Fact_TrackSnapshot` is missing `popularity` or `track_key`.
-- [ ] Track-level deduplication uses **ISRC first, fallback to (track_name + primary_artist_name)** — never on track_name alone.
+- [ ] Track-level deduplication uses **`spotify_id` first, fallback to (track_name + primary_artist_name)** — never on track_name alone. *(Revised from ISRC-first: the chosen dataset has no ISRC — see §7 and `powerbi/data_model.md` Gate-G1 note.)*
 - [ ] The Power BI `.pbix` file imports all CSVs without Power Query errors and renders the dashboard pages.
 - [ ] **Every chart** in the final dashboard has a written justification in `report/chart_justifications.md` that cites at least one source in `documents/`.
 - [ ] The README enables a teammate to set up the project from scratch in ≤ 15 minutes.
@@ -39,7 +39,7 @@ Since the dashboard's analytical thesis hinges on **audio features** (danceabili
 
 | Layer | Choice | Version | Why |
 |---|---|---|---|
-| Data source | **Kaggle CSV** (primary candidate: *Top Spotify Songs in 73 Countries – Daily* by Asaniczka; secondary: *Spotify Tracks Dataset* by maharshipandya) | latest snapshot at download time | Audio features + recent (2024) chart data |
+| Data source | **Kaggle CSV** — *Top Spotify Songs in 73 Countries – Daily* by Asaniczka (**confirmed primary** at Gate G1; `universal_top_spotify_songs.csv`) | 2025-06-11 snapshot | Audio features + 2023–2025 daily chart data |
 | Pipeline language | **Python** | 3.11+ | Team familiarity, pandas ecosystem |
 | Dataframe library | **pandas** | ≥ 2.2 | Standard for this scale (< 1M rows) |
 | Validation | **pandera** *or* hand-written assertions in `tests/` | Choose at plan phase | Schema contracts for star schema |
@@ -110,7 +110,7 @@ spotify-trend-analysis-dashboard/
 │   ├── __init__.py
 │   ├── config.py          # Paths, constants, dataset URLs
 │   ├── ingest.py          # Load raw Kaggle CSV → typed pandas DataFrame
-│   ├── clean.py           # Dedup, null handling, type coercion, ISRC normalization
+│   ├── clean.py           # Dedup, null handling, type coercion, primary-artist extraction
 │   ├── transform.py       # Build fact + dimension tables
 │   ├── validate.py        # Star-schema contracts (FK integrity, non-null keys)
 │   ├── export.py          # Write CSVs with Power BI-friendly encoding
@@ -151,11 +151,11 @@ from src.config import AUDIO_FEATURE_COLS
 def build_dim_track(cleaned: pd.DataFrame) -> pd.DataFrame:
     """Collapse the cleaned per-(track, country, date) frame into one row per track.
 
-    Audio features are static per ISRC, so we aggregate by ISRC and keep the first
-    non-null value for each feature. Tracks without an ISRC use a synthetic key
-    derived from (track_name, primary_artist_name).
+    Audio features are static per recording, so we aggregate by `spotify_track_id`
+    and keep the first non-null value for each feature. Tracks without an id use a
+    synthetic key derived from (track_name, primary_artist_name).
     """
-    keep_cols = ["track_key", "track_name", "isrc", "explicit", "duration_ms", *AUDIO_FEATURE_COLS]
+    keep_cols = ["track_key", "track_name", "spotify_track_id", "explicit", "duration_ms", *AUDIO_FEATURE_COLS]
     dim = (
         cleaned
         .sort_values("snapshot_date")
@@ -218,13 +218,13 @@ Fixtures live in `tests/conftest.py` and use **synthetic data only** — never r
 
 **Static-vs-changing attributes:**
 - **Audio features live in `Dim_Track`** — they're properties of the recording, not measurements that change over time.
-- **`popularity`, `rank`, `daily_streams` live in `Fact_TrackSnapshot`** — they change over time.
+- **`popularity`, `rank`, `daily_streams` live in `Fact_TrackSnapshot`** — they change over time. *(The chosen Asaniczka dataset provides `popularity` and `rank` (`daily_rank`, 1–50) but **no `daily_streams`** — that column stays empty.)*
 
 **Key strategy:**
-- `track_key` = `isrc` when present; else `sha1(track_name + '|' + primary_artist_name)[:16]`. Stored as string.
+- `track_key` = `spotify_id` (the chosen dataset has **no ISRC**); falls back to `sha1(track_name + '|' + primary_artist_name)[:16]` only if an id is ever missing (none are in the profiled snapshot). Stored as string.
 - `artist_key`, `album_key` = stable hashes of canonicalized names (lowercased, accents stripped, whitespace collapsed).
 - `date_key` = `YYYYMMDD` integer (Power BI convention).
-- `country_key` = ISO 3166-1 alpha-2 (uppercase).
+- `country_key` = ISO 3166-1 alpha-2 (uppercase); blank-country "Global" chart rows use the sentinel `GLOBAL`.
 
 ---
 
@@ -242,12 +242,12 @@ Each dashboard chart will be paired with a section in `report/chart_justificatio
 |---|---|---|---|
 | 1 | Overview | KPI cards (track count, distinct artists, avg popularity, % explicit) | Topline scale of dataset |
 | 2 | Overview | Histogram of `popularity` | Is popularity uniformly distributed or long-tailed? |
-| 3 | Mood map | **Scatter plot** of valence (x) vs. energy (y), color by popularity, size by streams | Where in the energy–valence plane do popular songs cluster? |
+| 3 | Mood map | **Scatter plot** of valence (x) vs. energy (y), color by popularity (⚠ no stream counts in source — drop the optional size channel or size by `duration_ms`) | Where in the energy–valence plane do popular songs cluster? |
 | 4 | Temporal trends | **Line chart** of average danceability / energy / acousticness by release year | How has the sonic character of popular music evolved? |
 | 5 | Temporal trends | **Stacked area** of explicit vs. non-explicit share by year | Is explicit content becoming more dominant? |
 | 6 | Artists | **Horizontal bar** — top 20 artists by aggregate popularity | Who dominates the chart-track set? |
 | 7 | Audio anatomy | **Correlation matrix heatmap** of audio features | Which features co-vary? Are any redundant? |
-| 8 | Audio anatomy | **Box / violin plot** of selected feature by genre or by release-year bin | How does dispersion of a feature change across groups? |
+| 8 | Audio anatomy | **Box / violin plot** of selected feature by release-year bin (⚠ no genre in source) | How does dispersion of a feature change across groups? |
 | 9 | Geography (only if country dimension exists) | **Filled map** of average popularity by country | Where do these tracks resonate most? |
 | 10 | Detail | **Small multiples** — radar charts of audio features for top 5 artists | How do top artists differ in sonic signature? |
 
@@ -257,7 +257,7 @@ Each dashboard chart will be paired with a section in `report/chart_justificatio
 
 ### Always do
 - Run `make test` and `make lint` before every commit.
-- Use **ISRC** as the primary track key when available; fall back to canonicalized `(track_name, primary_artist_name)` only when ISRC is missing.
+- Use **`spotify_id`** as the primary track key (the chosen dataset has no ISRC); fall back to canonicalized `(track_name, primary_artist_name)` only when an id is missing. *(Was "use ISRC" — revised at Gate G1.)*
 - Write CSVs as **UTF-8 with BOM** (`encoding="utf-8-sig"`) so Power BI on Windows handles non-ASCII artist names correctly.
 - Pin the Kaggle dataset version (URL + downloaded date + SHA-256) in `data/raw/README.md`.
 - Cite a `documents/` source for every chart justification.
@@ -288,8 +288,9 @@ These remain unresolved and need a decision before or during the Plan phase. Non
    - Asaniczka, *Top Spotify Songs in 73 Countries (Daily)* — has chart positions + audio features, good for temporal/geographic analysis.
    - maharshipandya, *Spotify Tracks Dataset* — large genre breadth, audio features, but older snapshot (~2022).
    - Suggested combination: **Asaniczka as primary**, maharshipandya as a supplementary genre-context table if needed.
+   - **RESOLVED (Gate G1):** Asaniczka confirmed as the sole primary; downloaded + profiled (`notebooks/01_data_profile.ipynb`). A second dataset remains an ASK-FIRST item.
 2. **Country scope** — global aggregation only, or per-country exploration? Drives whether `Dim_Country` exists.
-3. **Genre taxonomy** — accept the dataset's labels as-is, or remap to a coarser standard (e.g., 8 macro-genres)?
+3. **Genre taxonomy** — accept the dataset's labels as-is, or remap to a coarser standard (e.g., 8 macro-genres)? **MOOT (Gate G1):** the chosen dataset has no genre column; group by release-year bin instead.
 4. **Report format** — Markdown (rendered to PDF), Word, or LaTeX? Affects how figures are embedded.
 5. **`uv` vs. `pip`** — does every teammate's machine support `uv`, or do we ship `requirements.txt` as the canonical interface?
 6. **Where do the course slides actually come from?** Confirm the team will drop them into `documents/` before we start writing justifications.
