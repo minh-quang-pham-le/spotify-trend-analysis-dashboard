@@ -12,40 +12,6 @@ import pandas as pd
 from src import clean
 from src.config import GLOBAL_COUNTRY_KEY
 
-# A full-schema raw row with sensible defaults; override individual fields per
-# test. Keeps the 25-column contract intact so clean() never KeyErrors.
-RAW_ROW_DEFAULTS: dict[str, object] = {
-    "spotify_id": "0aBcDeFgHiJkLmNoPqRsZ9",
-    "name": "Default Track",
-    "artists": "Default Artist",
-    "daily_rank": 1,
-    "daily_movement": 0,
-    "weekly_movement": 0,
-    "country": "US",
-    "snapshot_date": "2025-06-11",
-    "popularity": 50,
-    "is_explicit": False,
-    "duration_ms": 200000,
-    "album_name": "Default Album",
-    "album_release_date": "2024-01-01",
-    "danceability": 0.5,
-    "energy": 0.5,
-    "key": 1,
-    "loudness": -5.0,
-    "mode": 1,
-    "speechiness": 0.05,
-    "acousticness": 0.1,
-    "instrumentalness": 0.0,
-    "liveness": 0.1,
-    "valence": 0.5,
-    "tempo": 120.0,
-    "time_signature": 4,
-}
-
-
-def _raw(rows: list[dict[str, object]]) -> pd.DataFrame:
-    return pd.DataFrame([{**RAW_ROW_DEFAULTS, **r} for r in rows])
-
 
 def test_columns_renamed_to_canonical(cleaned_df: pd.DataFrame) -> None:
     cols = set(cleaned_df.columns)
@@ -75,8 +41,8 @@ def test_country_blank_maps_to_global_sentinel(cleaned_df: pd.DataFrame) -> None
     assert set(cleaned_df["country_key"]) == {"US", "GB", GLOBAL_COUNTRY_KEY}
 
 
-def test_country_code_uppercased() -> None:
-    out = clean.clean(_raw([{"country": "us"}, {"country": " gb "}]))
+def test_country_code_uppercased(make_raw) -> None:
+    out = clean.clean(make_raw([{"country": "us"}, {"country": " gb "}]))
     assert set(out["country_key"]) == {"US", "GB"}
 
 
@@ -92,8 +58,8 @@ def test_exact_duplicate_rows_dropped(raw_df: pd.DataFrame, cleaned_df: pd.DataF
     assert not cleaned_df.duplicated().any()
 
 
-def test_rows_missing_both_track_name_and_primary_artist_dropped() -> None:
-    raw = _raw(
+def test_rows_missing_both_track_name_and_primary_artist_dropped(make_raw) -> None:
+    raw = make_raw(
         [
             {"name": "Keep Me", "artists": "Someone"},  # keep
             {"name": None, "artists": None},  # both missing -> drop

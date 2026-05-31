@@ -46,7 +46,7 @@
   - Files: `src/clean.py`, `tests/test_clean.py`.
   - Depends on: B1.
 
-- [ ] **B3. Implement `transform.build_dim_track`.**
+- [x] **B3. Implement `transform.build_dim_track`.**
   - Acceptance: One row per `track_key` (ISRC-first, fallback to hash). Carries `track_name`, `isrc`, `explicit`, `duration_ms`, and all audio features in `AUDIO_FEATURE_COLS`. `track_key` is unique and non-null.
   - Verify: unit test on synthetic frame with duplicates and missing ISRCs; assert uniqueness invariant.
   - Files: `src/transform.py`, `tests/test_transform.py`.
