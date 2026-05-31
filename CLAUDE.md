@@ -110,8 +110,9 @@ Windows users without `make` run the equivalent `python -m …` commands. The RE
 
 ## Current status (update this when state changes)
 
-- Phase: **Specify complete, Plan pending.**
-- Primary Kaggle dataset: **TBD** — leading candidate is *Top Spotify Songs in 73 Countries (Daily)* by Asaniczka.
+- Phase: **Phase A (data foundation) complete — at Gate G1, awaiting team sign-off before Phase B.**
+- Primary Kaggle dataset: **confirmed** — *Top Spotify Songs in 73 Countries (Daily)* by Asaniczka, `universal_top_spotify_songs.csv` (snapshot 2025-06-11, SHA-256 in `data/raw/README.md`). Profiled in `notebooks/01_data_profile.ipynb`.
+- Schema reconciliation: real schema diverges from `SPEC.md §7` — **no ISRC** (key on `spotify_id`), **no `daily_streams`**, **no genre**; column renames encoded in `src/config.py`. Three boundary-changing items flagged for G1 in `powerbi/data_model.md` (the ISRC→spotify_id one touches SPEC §1/§7/§9 and needs team sign-off).
 - Power BI file: not yet created.
 - `documents/` folder: not yet populated by the team.
-- Open questions: see `SPEC.md §10`.
+- Open questions: see `SPEC.md §10`. A2 resolves #1 (dataset) and largely moots #3 (no genre to remap).
