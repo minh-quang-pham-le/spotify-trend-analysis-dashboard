@@ -64,7 +64,7 @@
   - Files: `src/transform.py`, `tests/test_transform.py`.
   - Depends on: B2.
 
-- [ ] **B6. Implement `transform.build_dim_date`.**
+- [x] **B6. Implement `transform.build_dim_date`.**
   - Acceptance: One row per calendar date present in the cleaned frame's snapshot dates. Columns per `data_model.md` (year, quarter, month, month_name, day, day_of_week, day_name, week_of_year, is_weekend). Contiguous: no missing days in the [min, max] range.
   - Verify: assert `len(dim) == (max_date - min_date).days + 1`; assert `is_weekend` matches `day_of_week ∈ {6, 7}`.
   - Files: `src/transform.py`, `tests/test_transform.py`.

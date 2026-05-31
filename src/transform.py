@@ -147,9 +147,48 @@ def build_dim_album(cleaned: pd.DataFrame) -> pd.DataFrame:
     return dim
 
 
+_DIM_DATE_COLS = (
+    "date_key",
+    "date",
+    "year",
+    "quarter",
+    "month",
+    "month_name",
+    "day",
+    "day_of_week",
+    "day_name",
+    "week_of_year",
+    "is_weekend",
+)
+
+
 def build_dim_date(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """Calendar dimension covering every date present in the fact table."""
-    raise NotImplementedError("Implementation pending — see SPEC.md Plan/Tasks phase.")
+    """Contiguous calendar dimension spanning [min, max] of the snapshot dates.
+
+    Every day in the range gets a row (no gaps), so Power BI time-intelligence
+    works. ``day_of_week`` is Monday=1..Sunday=7; ``is_weekend`` is Sat/Sun.
+    """
+    dates = pd.to_datetime(cleaned["snapshot_date"]).dropna()
+    if dates.empty:
+        return pd.DataFrame(columns=list(_DIM_DATE_COLS))
+
+    full = pd.date_range(dates.min().normalize(), dates.max().normalize(), freq="D")
+    dim = pd.DataFrame(
+        {
+            "date_key": full.strftime("%Y%m%d").astype(int),
+            "date": full.date,
+            "year": full.year,
+            "quarter": full.quarter,
+            "month": full.month,
+            "month_name": full.month_name(),
+            "day": full.day,
+            "day_of_week": full.dayofweek + 1,  # Monday = 1
+            "day_name": full.day_name(),
+            "week_of_year": full.isocalendar().week.astype(int).to_numpy(),
+            "is_weekend": full.dayofweek >= 5,  # Sat=5, Sun=6 (0-based)
+        }
+    )
+    return dim.loc[:, list(_DIM_DATE_COLS)].reset_index(drop=True)
 
 
 def build_dim_country(cleaned: pd.DataFrame) -> pd.DataFrame:

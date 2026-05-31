@@ -140,3 +140,58 @@ def test_dim_album_release_date_value(cleaned_df) -> None:
     dim = transform.build_dim_album(cleaned_df)
     dawn = dim.loc[dim["album_name"] == "Dawn", "release_date"].iloc[0]
     assert str(dawn) == "2024-01-15"
+
+
+# ---------------------------------------------------------------------------
+# B6 — build_dim_date
+# ---------------------------------------------------------------------------
+
+DIM_DATE_COLUMNS = [
+    "date_key",
+    "date",
+    "year",
+    "quarter",
+    "month",
+    "month_name",
+    "day",
+    "day_of_week",
+    "day_name",
+    "week_of_year",
+    "is_weekend",
+]
+
+
+def test_dim_date_contract_columns_and_count(cleaned_df) -> None:
+    dim = transform.build_dim_date(cleaned_df)
+    assert list(dim.columns) == DIM_DATE_COLUMNS
+    assert len(dim) == 2  # 2025-06-10 and 2025-06-11
+    assert dim["date_key"].is_unique
+
+
+def test_dim_date_is_contiguous_filling_gaps(make_cleaned) -> None:
+    cleaned = make_cleaned(
+        [
+            {"snapshot_date": "2025-06-10"},
+            {"snapshot_date": "2025-06-13"},
+        ]
+    )
+    dim = transform.build_dim_date(cleaned)
+    # No missing days inside [min, max]: 10, 11, 12, 13.
+    assert len(dim) == 4
+    assert list(dim["date_key"]) == [20250610, 20250611, 20250612, 20250613]
+
+
+def test_dim_date_key_is_yyyymmdd_int(cleaned_df) -> None:
+    dim = transform.build_dim_date(cleaned_df)
+    assert dim.loc[dim["date_key"] == 20250610].shape[0] == 1
+    assert dim["date_key"].dtype.kind == "i"
+
+
+def test_dim_date_weekend_matches_day_of_week(make_cleaned) -> None:
+    # Span a full week so both weekdays and weekend days appear.
+    cleaned = make_cleaned([{"snapshot_date": "2025-06-02"}, {"snapshot_date": "2025-06-08"}])
+    dim = transform.build_dim_date(cleaned)
+    assert dim["day_of_week"].between(1, 7).all()  # Monday = 1
+    assert (dim["is_weekend"] == (dim["day_of_week"] >= 6)).all()
+    # 2025-06-07 (Sat) and 2025-06-08 (Sun) are the weekend in this span.
+    assert dim["is_weekend"].sum() == 2
