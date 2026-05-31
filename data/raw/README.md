@@ -9,10 +9,10 @@ This folder holds the **untouched Kaggle dataset**. Everything here is gitignore
 | Field | Value |
 |---|---|
 | Expected filename | `universal_top_spotify_songs.csv` |
-| Approx. size | ~150 MB (varies per snapshot) |
-| Coverage | Daily charts across 73 countries through ~late 2024 / early 2025 |
-| Has audio features? | ✅ Yes |
-| License | Check the dataset page before redistributing |
+| Approx. size | ~498 MB CSV (~162 MB zip); grows daily |
+| Coverage | Daily charts across 73 countries (+ a blank-country "Global" chart) through 2025-06-11 in this snapshot |
+| Has audio features? | ✅ Yes (incl. `key`, `mode`, `time_signature`); ❌ no ISRC, no stream counts, no genre |
+| License | ODC Attribution License (ODC-By) — attribute Asaniczka / Spotify when redistributing |
 
 ## How to download
 
@@ -36,7 +36,7 @@ Update this table when you download a new snapshot.
 
 | Download date | Snapshot date (per dataset) | SHA-256 | Notes |
 |---|---|---|---|
-| _(none yet)_ | | | |
+| 2026-05-31 | 2025-06-11 (max `snapshot_date`) | `DC5B92D1042A3F1AF52E46583F2CAF9C68A9F2D70DA0F9DA3E5B3D17DD302518` | 497,967,212 bytes. Downloaded via `kaggle datasets download -d asaniczka/top-spotify-songs-in-73-countries-daily-updated --unzip`. ODC-By license. |
 
 ## Adding a second dataset
 

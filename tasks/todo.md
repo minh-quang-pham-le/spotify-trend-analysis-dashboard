@@ -8,7 +8,7 @@
 
 ## Phase A — Data foundation
 
-- [ ] **A1. Download the primary Kaggle dataset.**
+- [x] **A1. Download the primary Kaggle dataset.**
   - Acceptance: `data/raw/universal_top_spotify_songs.csv` exists locally (not committed). `data/raw/README.md` has a row in the snapshot log with download date + SHA-256.
   - Verify: `shasum -a 256 data/raw/universal_top_spotify_songs.csv` (or Windows `Get-FileHash`) matches the recorded value.
   - Files: `data/raw/`, `data/raw/README.md`.
