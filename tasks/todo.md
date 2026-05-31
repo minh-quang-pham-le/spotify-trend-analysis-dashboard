@@ -88,7 +88,7 @@
   - Files: `src/validate.py`, `tests/test_contracts.py`.
   - Depends on: B8.
 
-- [ ] **B10. Implement `src/export.py`.**
+- [x] **B10. Implement `src/export.py`.**
   - Acceptance: `export_tables(tables)` writes each DataFrame to `data/processed/<filename>.csv` with `encoding="utf-8-sig"`, `index=False`, explicit column order matching `data_model.md`. Creates `data/processed/` if missing.
   - Verify: integration test writes to a tmp dir; reads back with `pd.read_csv`; asserts column order and value round-trip including a non-ASCII artist name.
   - Files: `src/export.py`, `tests/test_export.py`.
