@@ -232,10 +232,12 @@ data/raw/*
 data/interim/*
 !data/interim/.gitkeep
 
-# Processed CSVs MAY be committed if small (< 25 MB total); otherwise rely on
-# `make build` to regenerate. Uncomment to ignore them entirely.
-# data/processed/*
-# !data/processed/.gitkeep
+# Processed CSVs are large (the fact table is ~2.1M rows / ~150 MB at the
+# (track, country, day) grain — far over SPEC §4's 25 MB commit threshold), so
+# they are NOT committed; teammates regenerate them with `make build`. This
+# keeps the "fresh clone" success criterion honest (SPEC §1).
+data/processed/*
+!data/processed/.gitkeep
 
 # Course materials (often copyrighted) — see documents/README.md
 documents/*
