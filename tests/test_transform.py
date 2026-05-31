@@ -223,3 +223,65 @@ def test_dim_country_unknown_code_degrades_gracefully(make_cleaned) -> None:
     dim = transform.build_dim_country(cleaned).set_index("country_key")
     assert dim.loc["ZZ", "region"] == config.UNKNOWN_REGION
     assert dim.loc["ZZ", "country_name"] == "ZZ"
+
+
+# ---------------------------------------------------------------------------
+# B8 — build_fact_track_snapshot
+# ---------------------------------------------------------------------------
+
+FACT_COLUMNS = [
+    "track_key",
+    "artist_key",
+    "album_key",
+    "date_key",
+    "country_key",
+    "popularity",
+    "rank",
+    "daily_streams",
+]
+
+
+def test_fact_contract_columns(cleaned_df) -> None:
+    fact = transform.build_fact_track_snapshot(cleaned_df)
+    assert list(fact.columns) == FACT_COLUMNS
+    assert fact["daily_streams"].isna().all()  # absent in source
+
+
+def test_fact_grain_is_track_country_date(cleaned_df) -> None:
+    fact = transform.build_fact_track_snapshot(cleaned_df)
+    assert len(fact) == 9  # 9 distinct (track, country, date) tuples in the fixture
+    grain = fact[["track_key", "country_key", "date_key"]]
+    assert not grain.duplicated().any()
+
+
+def test_fact_popularity_non_null(cleaned_df) -> None:
+    fact = transform.build_fact_track_snapshot(cleaned_df)
+    assert fact["popularity"].notna().all()
+    assert fact["track_key"].notna().all()
+
+
+def test_fact_foreign_keys_resolve_to_dimensions(cleaned_df) -> None:
+    fact = transform.build_fact_track_snapshot(cleaned_df)
+    dim_track = transform.build_dim_track(cleaned_df)
+    dim_artist = transform.build_dim_artist(cleaned_df)
+    dim_album = transform.build_dim_album(cleaned_df)
+    dim_date = transform.build_dim_date(cleaned_df)
+    dim_country = transform.build_dim_country(cleaned_df)
+
+    assert set(fact["track_key"]) <= set(dim_track["track_key"])
+    assert set(fact["artist_key"]) <= set(dim_artist["artist_key"])
+    assert set(fact["album_key"]) <= set(dim_album["album_key"])
+    assert set(fact["date_key"].dropna().astype("int64")) <= set(dim_date["date_key"])
+    assert set(fact["country_key"]) <= set(dim_country["country_key"])
+
+
+def test_fact_collapses_duplicate_grain_tuples(make_cleaned) -> None:
+    # Two rows for the same (track, country, day) collapse to one fact row.
+    rows = [
+        {"spotify_id": "dup1aaaaaaaaaaaaaaaaa1", "country": "US", "snapshot_date": "2025-06-11",
+         "popularity": 70, "daily_rank": 4},
+        {"spotify_id": "dup1aaaaaaaaaaaaaaaaa1", "country": "US", "snapshot_date": "2025-06-11",
+         "popularity": 71, "daily_rank": 5},
+    ]
+    fact = transform.build_fact_track_snapshot(make_cleaned(rows))
+    assert len(fact) == 1

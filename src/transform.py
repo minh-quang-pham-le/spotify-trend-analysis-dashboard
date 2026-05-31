@@ -214,6 +214,35 @@ def build_dim_country(cleaned: pd.DataFrame) -> pd.DataFrame:
     return dim
 
 
+_FACT_COLS = (
+    "track_key",
+    "artist_key",
+    "album_key",
+    "date_key",
+    "country_key",
+    "popularity",
+    "rank",
+    "daily_streams",
+)
+
+
 def build_fact_track_snapshot(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """Build the fact table at the (track, country, date) grain."""
-    raise NotImplementedError("Implementation pending — see SPEC.md Plan/Tasks phase.")
+    """Build the fact table at the (track, country, snapshot_date) grain.
+
+    Foreign keys are the surrogate keys from ``add_keys``, so they resolve into
+    the dimensions by construction. ``daily_streams`` is absent in the source
+    (Gate-G1) and kept as an all-null column. Any duplicate grain tuple collapses
+    to its first occurrence so the grain is exact.
+    """
+    df = add_keys(cleaned)
+    fact = df.loc[
+        :,
+        ["track_key", "artist_key", "album_key", "date_key", "country_key", "popularity", "rank"],
+    ].copy()
+    fact["daily_streams"] = pd.NA
+    fact = (
+        fact.drop_duplicates(subset=["track_key", "country_key", "date_key"], keep="first")
+        .loc[:, list(_FACT_COLS)]
+        .reset_index(drop=True)
+    )
+    return fact

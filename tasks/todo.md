@@ -76,7 +76,7 @@
   - Files: `src/transform.py`, `src/config.py` (region table), `tests/test_transform.py`.
   - Depends on: B2.
 
-- [ ] **B8. Implement `transform.build_fact_track_snapshot`.**
+- [x] **B8. Implement `transform.build_fact_track_snapshot`.**
   - Acceptance: Grain is `(track, country, snapshot_date)`. Foreign keys resolve. `popularity` non-null; `rank` and `daily_streams` allowed null where source is null.
   - Verify: unit test confirms grain (no FK collisions, no duplicated FK tuple). Asserts every FK value appears in the corresponding dim's PK set.
   - Files: `src/transform.py`, `tests/test_transform.py`.
