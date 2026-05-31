@@ -20,7 +20,7 @@
   - Files: `notebooks/01_data_profile.ipynb`.
   - Depends on: A1.
 
-- [ ] **A3. Reconcile `src/config.py` with the real schema.**
+- [x] **A3. Reconcile `src/config.py` with the real schema.**
   - Acceptance: Any constants in `src/config.py` that don't match the actual column names (e.g. `AUDIO_FEATURE_COLS`, `TRACK_METADATA_COLS`) are renamed or remapped. `data_model.md` is updated if column names diverge from the original schema.
   - Verify: `make test` still passes (smoke tests check constants exist and are non-empty, so renames must keep that property).
   - Files: `src/config.py`, possibly `powerbi/data_model.md`.
