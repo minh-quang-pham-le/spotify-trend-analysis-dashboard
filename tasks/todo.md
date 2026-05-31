@@ -58,7 +58,7 @@
   - Files: `src/transform.py`, `tests/test_transform.py`.
   - Depends on: B2. (Parallel with B3, B5, B6, B7.)
 
-- [ ] **B5. Implement `transform.build_dim_album`.**
+- [x] **B5. Implement `transform.build_dim_album`.**
   - Acceptance: One row per `(canonicalized album_name, release_date)`. Carries `total_tracks` if available.
   - Verify: same-name albums with different release dates are separate rows.
   - Files: `src/transform.py`, `tests/test_transform.py`.

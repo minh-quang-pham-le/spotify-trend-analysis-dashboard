@@ -128,8 +128,23 @@ def build_dim_artist(cleaned: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_dim_album(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """One row per album (canonicalized name x release_date -> key)."""
-    raise NotImplementedError("Implementation pending — see SPEC.md Plan/Tasks phase.")
+    """One row per album, keyed on (canonicalized name, release_date).
+
+    Same-name albums with different release dates are distinct rows. ``release_date``
+    is stored as a plain date (no time component) for a clean Power BI import.
+    ``total_tracks`` is absent in the source -> all-null column.
+    """
+    df = add_keys(cleaned)
+    dim = (
+        df.loc[:, ["album_key", "album_name", "release_date"]]
+        .drop_duplicates(subset="album_key", keep="first")
+        .reset_index(drop=True)
+    )
+    dim["release_date"] = dim["release_date"].dt.date
+    dim["total_tracks"] = pd.NA
+    dim = dim.loc[:, ["album_key", "album_name", "release_date", "total_tracks"]]
+    assert dim["album_key"].is_unique, "album_key must be unique in Dim_Album"
+    return dim
 
 
 def build_dim_date(cleaned: pd.DataFrame) -> pd.DataFrame:

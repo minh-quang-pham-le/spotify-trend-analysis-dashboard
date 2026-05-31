@@ -92,3 +92,51 @@ def test_dim_artist_keeps_first_seen_display_name(cleaned_df) -> None:
     names = set(dim["artist_name"])
     assert "Aurora Skye" in names  # first-seen casing preserved
     assert "aurora skye" not in names
+
+
+# ---------------------------------------------------------------------------
+# B5 — build_dim_album
+# ---------------------------------------------------------------------------
+
+
+def test_dim_album_one_row_per_album(cleaned_df) -> None:
+    dim = transform.build_dim_album(cleaned_df)
+    assert len(dim) == 4  # Dawn, Night, Fiesta, Reverb
+    assert dim["album_key"].is_unique
+    assert dim["album_key"].notna().all()
+
+
+def test_dim_album_has_contract_columns(cleaned_df) -> None:
+    dim = transform.build_dim_album(cleaned_df)
+    assert list(dim.columns) == ["album_key", "album_name", "release_date", "total_tracks"]
+    # total_tracks is not provided by the source -> all-null column.
+    assert dim["total_tracks"].isna().all()
+
+
+def test_dim_album_separates_same_name_different_release_date(make_cleaned) -> None:
+    cleaned = make_cleaned(
+        [
+            {
+                "spotify_id": "alb1aaaaaaaaaaaaaaaaa1",
+                "name": "x",
+                "artists": "a",
+                "album_name": "Greatest Hits",
+                "album_release_date": "2010-01-01",
+            },
+            {
+                "spotify_id": "alb2aaaaaaaaaaaaaaaaa2",
+                "name": "y",
+                "artists": "b",
+                "album_name": "Greatest Hits",
+                "album_release_date": "2020-01-01",
+            },
+        ]
+    )
+    dim = transform.build_dim_album(cleaned)
+    assert len(dim) == 2  # same name, different release dates -> two albums
+
+
+def test_dim_album_release_date_value(cleaned_df) -> None:
+    dim = transform.build_dim_album(cleaned_df)
+    dawn = dim.loc[dim["album_name"] == "Dawn", "release_date"].iloc[0]
+    assert str(dawn) == "2024-01-15"
