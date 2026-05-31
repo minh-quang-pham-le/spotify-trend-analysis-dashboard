@@ -100,7 +100,7 @@
   - Files: `src/pipeline.py`, `tests/test_pipeline.py`.
   - Depends on: B10.
 
-- [ ] **B12. End-to-end run on real data.**
+- [x] **B12. End-to-end run on real data.**
   - Acceptance: `make build` against the real Kaggle dataset exits 0. `data/processed/` contains all expected CSVs. Manual eyeball: open one CSV, the rows look correct (no garbled text, no NaN where there shouldn't be).
   - Verify: `make build && make test`. Confirm processed CSV row counts are within ±5% of expected based on A2 profiling.
   - Files: none new; this is execution.

@@ -85,6 +85,14 @@ def test_clean_is_pure_does_not_mutate_input(raw_df: pd.DataFrame) -> None:
     pd.testing.assert_frame_equal(raw_df, before)
 
 
+def test_nonpositive_tempo_coerced_to_nan(make_cleaned) -> None:
+    # Spotify emits tempo=0 when tempo can't be detected; that is not a real BPM,
+    # so it becomes NaN (tempo is nullable in data_model.md). Positives survive.
+    out = make_cleaned([{"tempo": 0.0}, {"tempo": 120.0}, {"tempo": -5.0}])
+    assert out["tempo"].notna().sum() == 1
+    assert (out["tempo"].dropna() == 120.0).all()
+
+
 def test_spotify_track_id_preserved(cleaned_df: pd.DataFrame) -> None:
     # The 22-char id survives unchanged (it is the basis for track_key).
     ids = set(cleaned_df["spotify_track_id"])

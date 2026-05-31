@@ -84,6 +84,9 @@ def clean(raw: pd.DataFrame) -> pd.DataFrame:
         country_key=df["country"].map(_country_key),
         release_date=pd.to_datetime(df["release_date"], errors="coerce"),
         snapshot_date=pd.to_datetime(df["snapshot_date"], errors="coerce"),
+        # tempo=0 is Spotify's "undetectable" sentinel, not a real BPM — treat as
+        # missing (tempo is nullable; keeps the SPEC §7 tempo>0 contract honest).
+        tempo=df["tempo"].where(df["tempo"] > 0),
     )
 
     # Drop rows missing BOTH essential identifiers. (track_name alone or

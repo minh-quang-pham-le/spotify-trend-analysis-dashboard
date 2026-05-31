@@ -33,7 +33,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | danceability | float [0, 1] | yes | |
 | energy | float [0, 1] | yes | |
 | valence | float [0, 1] | yes | |
-| tempo | float > 0 | yes | BPM |
+| tempo | float > 0 | yes | BPM. Source `tempo=0` (Spotify "undetectable" sentinel) is coerced to null in `clean.py` — 1 row in the 2025-06-11 snapshot. |
 | acousticness | float [0, 1] | yes | |
 | liveness | float [0, 1] | yes | |
 | speechiness | float [0, 1] | yes | |

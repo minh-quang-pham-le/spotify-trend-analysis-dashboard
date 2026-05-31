@@ -110,9 +110,11 @@ Windows users without `make` run the equivalent `python -m …` commands. The RE
 
 ## Current status (update this when state changes)
 
-- Phase: **Phase A (data foundation) complete — at Gate G1, awaiting team sign-off before Phase B.**
+- Phase: **Phase B (pipeline) complete — `make build` is green end-to-end on the real dataset. At Gate G2, awaiting team sign-off before Phase C (Power BI).**
+- Pipeline: `ingest → clean → transform (6 builders) → validate → export` all implemented (tasks B1–B12, TDD). `make build` exits 0 on the 2025-06-11 snapshot — **2,110,287** fact rows; dims: dim_track=24,976, dim_artist=7,565, dim_album=17,229, dim_date=603 (2023-10-18→2025-06-11, contiguous), dim_country=73. **68 unit/contract tests green**, ruff clean, coverage on clean/transform/validate ≥ 87%.
+- Processed CSVs: **gitignored** — the fact CSV is ~162 MB (> SPEC §4's 25 MB threshold). Regenerate with `make build` (team decision at G1).
+- Gate-G1 decisions locked in: key on `spotify_id` (no ISRC), `daily_streams` absent (all-null column), genre absent (all-null `primary_genre`). Plus a data-reality fix: `tempo=0` (Spotify "undetectable" sentinel — 1 row) is coerced to null in `clean.py` (`tempo` is nullable; keeps the SPEC §7 `tempo>0` contract honest).
 - Primary Kaggle dataset: **confirmed** — *Top Spotify Songs in 73 Countries (Daily)* by Asaniczka, `universal_top_spotify_songs.csv` (snapshot 2025-06-11, SHA-256 in `data/raw/README.md`). Profiled in `notebooks/01_data_profile.ipynb`.
-- Schema reconciliation: real schema diverges from `SPEC.md §7` — **no ISRC** (key on `spotify_id`), **no `daily_streams`**, **no genre**; column renames encoded in `src/config.py`. Three boundary-changing items flagged for G1 in `powerbi/data_model.md` (the ISRC→spotify_id one touches SPEC §1/§7/§9 and needs team sign-off).
-- Power BI file: not yet created.
+- Power BI file: **not yet created** (next: Phase C / task C1, manual in Power BI Desktop).
 - `documents/` folder: not yet populated by the team.
-- Open questions: see `SPEC.md §10`. A2 resolves #1 (dataset) and largely moots #3 (no genre to remap).
+- Open questions (`SPEC.md §10`): #1 resolved (dataset), #2 resolved-by-default (per-country — `Dim_Country` is built), #3 moot (no genre). #4 report format, #5 uv-vs-pip, #6 documents provenance still open — none block Phase C.
