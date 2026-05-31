@@ -40,7 +40,7 @@
   - Files: `src/ingest.py`, `tests/test_ingest.py`, `tests/fixtures/mini_raw.csv`.
   - Depends on: G1.
 
-- [ ] **B2. Implement `src/clean.py`.**
+- [x] **B2. Implement `src/clean.py`.**
   - Acceptance: `clean(raw)` returns a cleaned frame with: snake_case column names, parsed dates, normalized ISRC (uppercase, stripped), no fully-duplicated rows, no rows where the essential identifiers (`track_name` AND `primary_artist_name`) are both missing.
   - Verify: `tests/test_clean.py` covers each transformation with synthetic edge cases. Coverage on `src/clean.py` ≥ 80%.
   - Files: `src/clean.py`, `tests/test_clean.py`.
