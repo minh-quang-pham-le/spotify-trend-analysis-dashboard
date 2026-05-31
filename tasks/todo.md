@@ -14,7 +14,7 @@
   - Files: `data/raw/`, `data/raw/README.md`.
   - Depends on: nothing.
 
-- [ ] **A2. Profile the raw dataset.**
+- [x] **A2. Profile the raw dataset.**
   - Acceptance: `notebooks/01_data_profile.ipynb` exists and reports: column list, dtypes, row count, null fraction per column, cardinality of `artist_name` / `album_name` / `country` if present, date-column min/max, fraction of rows with a valid ISRC, fraction with audio features.
   - Verify: notebook runs top-to-bottom without errors against `data/raw/`. Print a one-paragraph summary at the bottom answering: "Does the dataset match our assumptions in `SPEC.md §7`?"
   - Files: `notebooks/01_data_profile.ipynb`.
