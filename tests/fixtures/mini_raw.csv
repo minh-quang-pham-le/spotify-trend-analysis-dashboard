@@ -1,0 +1,11 @@
+spotify_id,name,artists,daily_rank,daily_movement,weekly_movement,country,snapshot_date,popularity,is_explicit,duration_ms,album_name,album_release_date,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo,time_signature
+0aBcDeFgHiJkLmNoPqRsT1,Sunrise,Aurora Skye,1,0,2,US,2025-06-10,90,False,200000,Dawn,2024-01-15,0.80,0.70,5,-5.0,1,0.05,0.10,0.00,0.12,0.75,120.0,4
+0aBcDeFgHiJkLmNoPqRsT1,Sunrise,Aurora Skye,2,1,0,GB,2025-06-10,90,False,200000,Dawn,2024-01-15,0.80,0.70,5,-5.0,1,0.05,0.10,0.00,0.12,0.75,120.0,4
+0aBcDeFgHiJkLmNoPqRsT1,Sunrise,Aurora Skye,1,0,1,,2025-06-10,90,False,200000,Dawn,2024-01-15,0.80,0.70,5,-5.0,1,0.05,0.10,0.00,0.12,0.75,120.0,4
+0aBcDeFgHiJkLmNoPqRsT2,Midnight,"Beat Crew, Aurora Skye",2,-1,3,US,2025-06-10,80,True,210000,Night,2024-06-01,0.60,0.85,7,-4.0,0,0.10,0.05,0.01,0.20,0.40,128.0,4
+0aBcDeFgHiJkLmNoPqRsT3,Café Olé,Café Trío,5,2,-2,GB,2025-06-10,60,False,180000,Fiesta,2023-11-20,0.70,0.55,0,-7.0,1,0.04,0.50,0.00,0.10,0.90,98.0,3
+0aBcDeFgHiJkLmNoPqRsT1,Sunrise,Aurora Skye,1,0,0,US,2025-06-11,91,False,200000,Dawn,2024-01-15,0.80,0.70,5,-5.0,1,0.05,0.10,0.00,0.12,0.75,120.0,4
+0aBcDeFgHiJkLmNoPqRsT2,Midnight,"Beat Crew, Aurora Skye",3,-1,1,US,2025-06-11,79,True,210000,Night,2024-06-01,0.60,0.85,7,-4.0,0,0.10,0.05,0.01,0.20,0.40,128.0,4
+0aBcDeFgHiJkLmNoPqRsT4,Echoes,aurora skye,10,5,5,US,2025-06-11,55,False,240000,Reverb,2025-02-10,0.50,0.40,9,-9.0,0,0.03,0.70,0.30,0.08,0.30,90.0,4
+0aBcDeFgHiJkLmNoPqRsT4,Echoes,aurora skye,10,5,5,US,2025-06-11,55,False,240000,Reverb,2025-02-10,0.50,0.40,9,-9.0,0,0.03,0.70,0.30,0.08,0.30,90.0,4
+0aBcDeFgHiJkLmNoPqRsT3,Café Olé,Café Trío,7,-2,-3,,2025-06-11,58,False,180000,Fiesta,2023-11-20,0.70,0.55,0,-7.0,1,0.04,0.50,0.00,0.10,0.90,98.0,3

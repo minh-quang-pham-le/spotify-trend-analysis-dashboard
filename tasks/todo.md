@@ -34,7 +34,7 @@
 
 ## Phase B — Pipeline implementation
 
-- [ ] **B1. Implement `src/ingest.py`.**
+- [x] **B1. Implement `src/ingest.py`.**
   - Acceptance: `load_raw(path=None)` reads `data/raw/<dataset>.csv`, returns a `pd.DataFrame`, raises a clear `FileNotFoundError` if missing. No type coercion here.
   - Verify: `make test` includes a unit test that loads a tiny synthetic CSV from `tests/fixtures/` and asserts shape + columns.
   - Files: `src/ingest.py`, `tests/test_ingest.py`, `tests/fixtures/mini_raw.csv`.
