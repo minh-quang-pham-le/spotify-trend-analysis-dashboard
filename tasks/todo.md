@@ -82,7 +82,7 @@
   - Files: `src/transform.py`, `tests/test_transform.py`.
   - Depends on: B3–B7.
 
-- [ ] **B9. Implement `src/validate.py` contracts.**
+- [x] **B9. Implement `src/validate.py` contracts.**
   - Acceptance: `validate_star_schema(tables)` checks every contract from `SPEC.md §7` and `validate.py` docstring. Returns a `ValidationReport` with `passed=False` and explicit error messages when contracts fail.
   - Verify: `tests/test_contracts.py` includes one passing case (good synthetic tables) and at least three failing cases (missing FK, duplicated PK, out-of-range popularity).
   - Files: `src/validate.py`, `tests/test_contracts.py`.

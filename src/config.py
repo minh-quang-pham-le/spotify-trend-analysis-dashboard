@@ -210,3 +210,23 @@ CSV_INDEX: bool = False
 
 # Truncate sha1 hashes to this many hex chars when constructing surrogate keys.
 SURROGATE_KEY_LENGTH: int = 16
+
+# ---------------------------------------------------------------------------
+# Validation thresholds (used by src/validate.py — no magic numbers in logic)
+# ---------------------------------------------------------------------------
+
+# Spotify popularity score bounds (inclusive).
+POPULARITY_MIN: int = 0
+POPULARITY_MAX: int = 100
+
+# Audio features bounded to [0, 1]. `loudness` (dB) and `tempo` (BPM > 0) are
+# NOT ratios and are validated separately.
+RATIO_AUDIO_FEATURE_COLS: tuple[str, ...] = (
+    "danceability",
+    "energy",
+    "valence",
+    "acousticness",
+    "liveness",
+    "speechiness",
+    "instrumentalness",
+)
