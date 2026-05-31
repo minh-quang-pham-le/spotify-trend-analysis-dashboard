@@ -94,7 +94,7 @@
   - Files: `src/export.py`, `tests/test_export.py`.
   - Depends on: B9.
 
-- [ ] **B11. Wire `src/pipeline.py`.**
+- [x] **B11. Wire `src/pipeline.py`.**
   - Acceptance: `run()` calls ingest → clean → transform (six builders) → validate (abort on failure) → export. Returns exit code 0 on success, 1 on validation failure. Prints a one-line status per stage.
   - Verify: invoke `python -m src.pipeline` against synthetic raw data in tmp; assert `data/processed/` populated.
   - Files: `src/pipeline.py`, `tests/test_pipeline.py`.
