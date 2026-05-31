@@ -52,7 +52,7 @@
   - Files: `src/transform.py`, `tests/test_transform.py`.
   - Depends on: B2.
 
-- [ ] **B4. Implement `transform.build_dim_artist`.**
+- [x] **B4. Implement `transform.build_dim_artist`.**
   - Acceptance: One row per artist (using primary artist only — known limitation per `data_model.md`). `artist_key` = stable hash of canonicalized name.
   - Verify: synthetic test asserts artists with different casing / accents collapse to the same key.
   - Files: `src/transform.py`, `tests/test_transform.py`.

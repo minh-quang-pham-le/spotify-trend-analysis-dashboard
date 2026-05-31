@@ -109,8 +109,22 @@ def build_dim_track(cleaned: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_dim_artist(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """One row per artist (canonicalized primary-artist name → stable surrogate key)."""
-    raise NotImplementedError("Implementation pending — see SPEC.md Plan/Tasks phase.")
+    """One row per artist (canonicalized primary-artist name → stable surrogate key).
+
+    Display name is the first-seen casing for each key. ``primary_genre`` is
+    absent in the source (Gate-G1) so it is an all-null column.
+    """
+    df = add_keys(cleaned)
+    dim = (
+        df.loc[:, ["artist_key", "primary_artist_name"]]
+        .drop_duplicates(subset="artist_key", keep="first")
+        .rename(columns={"primary_artist_name": "artist_name"})
+        .reset_index(drop=True)
+    )
+    dim["primary_genre"] = pd.NA
+    dim = dim.loc[:, ["artist_key", "artist_name", "primary_genre"]]
+    assert dim["artist_key"].is_unique, "artist_key must be unique in Dim_Artist"
+    return dim
 
 
 def build_dim_album(cleaned: pd.DataFrame) -> pd.DataFrame:
