@@ -70,7 +70,7 @@
   - Files: `src/transform.py`, `tests/test_transform.py`.
   - Depends on: B2.
 
-- [ ] **B7. Implement `transform.build_dim_country`.** *(skip if dataset is global-only — see locked default #2.)*
+- [x] **B7. Implement `transform.build_dim_country`.** *(skip if dataset is global-only — see locked default #2.)*
   - Acceptance: One row per ISO 3166-1 alpha-2 country code present in the data. `region` populated from a small hardcoded lookup table in `src/config.py`.
   - Verify: assert `country_key.is_unique`; spot-check region mapping.
   - Files: `src/transform.py`, `src/config.py` (region table), `tests/test_transform.py`.

@@ -7,8 +7,8 @@ frames via the ``make_cleaned`` factory.
 
 from __future__ import annotations
 
-from src import transform
-from src.config import AUDIO_FEATURE_COLS
+from src import config, transform
+from src.config import AUDIO_FEATURE_COLS, GLOBAL_COUNTRY_KEY
 
 # ---------------------------------------------------------------------------
 # B3 — build_dim_track
@@ -195,3 +195,31 @@ def test_dim_date_weekend_matches_day_of_week(make_cleaned) -> None:
     assert (dim["is_weekend"] == (dim["day_of_week"] >= 6)).all()
     # 2025-06-07 (Sat) and 2025-06-08 (Sun) are the weekend in this span.
     assert dim["is_weekend"].sum() == 2
+
+
+# ---------------------------------------------------------------------------
+# B7 — build_dim_country
+# ---------------------------------------------------------------------------
+
+
+def test_dim_country_one_row_per_country_key(cleaned_df) -> None:
+    dim = transform.build_dim_country(cleaned_df)
+    assert list(dim.columns) == ["country_key", "country_name", "region"]
+    assert set(dim["country_key"]) == {"US", "GB", GLOBAL_COUNTRY_KEY}
+    assert dim["country_key"].is_unique
+
+
+def test_dim_country_region_mapping(cleaned_df) -> None:
+    dim = transform.build_dim_country(cleaned_df).set_index("country_key")
+    assert dim.loc["US", "region"] == "Americas"
+    assert dim.loc["US", "country_name"] == "United States"
+    assert dim.loc["GB", "region"] == "Europe"
+    assert dim.loc[GLOBAL_COUNTRY_KEY, "region"] == "Global"
+    assert dim.loc[GLOBAL_COUNTRY_KEY, "country_name"] == "Global"
+
+
+def test_dim_country_unknown_code_degrades_gracefully(make_cleaned) -> None:
+    cleaned = make_cleaned([{"country": "ZZ"}])  # not a real ISO-2 code
+    dim = transform.build_dim_country(cleaned).set_index("country_key")
+    assert dim.loc["ZZ", "region"] == config.UNKNOWN_REGION
+    assert dim.loc["ZZ", "country_name"] == "ZZ"

@@ -192,8 +192,26 @@ def build_dim_date(cleaned: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_dim_country(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """One row per ISO 3166-1 alpha-2 country code (incl. the GLOBAL sentinel)."""
-    raise NotImplementedError("Implementation pending — see SPEC.md Plan/Tasks phase.")
+    """One row per country key present (incl. the GLOBAL sentinel).
+
+    Display name and region come from ``config.COUNTRY_LOOKUP``; codes not in the
+    table degrade to (code, ``UNKNOWN_REGION``) so a growing dataset never breaks
+    the build.
+    """
+    keys = sorted(cleaned["country_key"].dropna().unique())
+    dim = pd.DataFrame(
+        [
+            {
+                "country_key": k,
+                "country_name": config.COUNTRY_LOOKUP.get(k, (k, config.UNKNOWN_REGION))[0],
+                "region": config.COUNTRY_LOOKUP.get(k, (k, config.UNKNOWN_REGION))[1],
+            }
+            for k in keys
+        ],
+        columns=["country_key", "country_name", "region"],
+    )
+    assert dim["country_key"].is_unique, "country_key must be unique in Dim_Country"
+    return dim
 
 
 def build_fact_track_snapshot(cleaned: pd.DataFrame) -> pd.DataFrame:

@@ -110,6 +110,93 @@ ABSENT_EXPECTED_COLUMNS: tuple[str, ...] = ("isrc", "daily_streams", "primary_ge
 GLOBAL_COUNTRY_KEY: str = "GLOBAL"
 
 # ---------------------------------------------------------------------------
+# Country dimension lookup
+# ---------------------------------------------------------------------------
+# ISO 3166-1 alpha-2 -> (English display name, region). Covers exactly the 72
+# country codes present in the profiled snapshot plus the GLOBAL sentinel.
+# Regions use the coarse set agreed in data_model.md: Americas / Europe / Asia /
+# Africa / Oceania / Global. The dataset grows daily, so build_dim_country
+# degrades gracefully for any future code not listed here (see UNKNOWN_REGION).
+COUNTRY_LOOKUP: dict[str, tuple[str, str]] = {
+    GLOBAL_COUNTRY_KEY: ("Global", "Global"),
+    "AE": ("United Arab Emirates", "Asia"),
+    "AR": ("Argentina", "Americas"),
+    "AT": ("Austria", "Europe"),
+    "AU": ("Australia", "Oceania"),
+    "BE": ("Belgium", "Europe"),
+    "BG": ("Bulgaria", "Europe"),
+    "BO": ("Bolivia", "Americas"),
+    "BR": ("Brazil", "Americas"),
+    "BY": ("Belarus", "Europe"),
+    "CA": ("Canada", "Americas"),
+    "CH": ("Switzerland", "Europe"),
+    "CL": ("Chile", "Americas"),
+    "CO": ("Colombia", "Americas"),
+    "CR": ("Costa Rica", "Americas"),
+    "CZ": ("Czechia", "Europe"),
+    "DE": ("Germany", "Europe"),
+    "DK": ("Denmark", "Europe"),
+    "DO": ("Dominican Republic", "Americas"),
+    "EC": ("Ecuador", "Americas"),
+    "EE": ("Estonia", "Europe"),
+    "EG": ("Egypt", "Africa"),
+    "ES": ("Spain", "Europe"),
+    "FI": ("Finland", "Europe"),
+    "FR": ("France", "Europe"),
+    "GB": ("United Kingdom", "Europe"),
+    "GR": ("Greece", "Europe"),
+    "GT": ("Guatemala", "Americas"),
+    "HK": ("Hong Kong", "Asia"),
+    "HN": ("Honduras", "Americas"),
+    "HU": ("Hungary", "Europe"),
+    "ID": ("Indonesia", "Asia"),
+    "IE": ("Ireland", "Europe"),
+    "IL": ("Israel", "Asia"),
+    "IN": ("India", "Asia"),
+    "IS": ("Iceland", "Europe"),
+    "IT": ("Italy", "Europe"),
+    "JP": ("Japan", "Asia"),
+    "KR": ("South Korea", "Asia"),
+    "KZ": ("Kazakhstan", "Asia"),
+    "LT": ("Lithuania", "Europe"),
+    "LU": ("Luxembourg", "Europe"),
+    "LV": ("Latvia", "Europe"),
+    "MA": ("Morocco", "Africa"),
+    "MX": ("Mexico", "Americas"),
+    "MY": ("Malaysia", "Asia"),
+    "NG": ("Nigeria", "Africa"),
+    "NI": ("Nicaragua", "Americas"),
+    "NL": ("Netherlands", "Europe"),
+    "NO": ("Norway", "Europe"),
+    "NZ": ("New Zealand", "Oceania"),
+    "PA": ("Panama", "Americas"),
+    "PE": ("Peru", "Americas"),
+    "PH": ("Philippines", "Asia"),
+    "PK": ("Pakistan", "Asia"),
+    "PL": ("Poland", "Europe"),
+    "PT": ("Portugal", "Europe"),
+    "PY": ("Paraguay", "Americas"),
+    "RO": ("Romania", "Europe"),
+    "SA": ("Saudi Arabia", "Asia"),
+    "SE": ("Sweden", "Europe"),
+    "SG": ("Singapore", "Asia"),
+    "SK": ("Slovakia", "Europe"),
+    "SV": ("El Salvador", "Americas"),
+    "TH": ("Thailand", "Asia"),
+    "TR": ("Turkey", "Asia"),
+    "TW": ("Taiwan", "Asia"),
+    "UA": ("Ukraine", "Europe"),
+    "US": ("United States", "Americas"),
+    "UY": ("Uruguay", "Americas"),
+    "VE": ("Venezuela", "Americas"),
+    "VN": ("Vietnam", "Asia"),
+    "ZA": ("South Africa", "Africa"),
+}
+
+# Fallback region for any country_key not present in COUNTRY_LOOKUP.
+UNKNOWN_REGION: str = "Unknown"
+
+# ---------------------------------------------------------------------------
 # I/O conventions
 # ---------------------------------------------------------------------------
 
