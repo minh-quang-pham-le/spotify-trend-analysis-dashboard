@@ -396,10 +396,16 @@ negative. Export → `report/figures/d5_correlation_heatmap.png`.
        "2019 & earlier")
    ```
    Filter out `"Unknown"` (5 tracks). The labels sort chronologically as-is.
-2. ⚠ **No native box plot — the one remaining blocker.** Install the AppSource **"Box and
-   Whisker chart"** (MAQ Software) custom visual, or use a Python visual (`seaborn.boxplot`).
-3. Category/X = `Release bucket`; Sampling/Value = `dim_track[acousticness]` (the visual computes
-   the quartiles). Title "Acousticness by release-year bucket".
+2. **Install the box-plot visual.** Visualizations pane → **··· → Get more visuals** → search
+   **"Box and Whisker chart"** (MAQ Software) → **Add**.
+3. **Field wells — this is where the first attempt went wrong: do NOT put `acousticness` on the
+   axis.** A box plot has no "count" axis; if you see `Count of track_key` you built a histogram.
+   - **Category** = `Release bucket`  ← the 5 groups along the X axis
+   - **Sampling** = `dim_track[track_key]`  ← one observation per track (sets the granularity)
+   - **Value** = `acousticness`  (aggregation **Average** / Don't summarize — one value per track)
+
+   The visual then draws **one box per bucket** (median + IQR + whiskers + outliers). Title
+   "Acousticness by release-year bucket".
 
 **Verify** (acousticness median / IQR per bucket): `≤2019` 0.252 / 0.466 · `2020-22` 0.298 / 0.483
 · `2023` 0.194 / 0.350 · `2024` 0.184 / 0.343 · `2025` 0.166 / 0.321. The boxes should **drop and
