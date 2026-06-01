@@ -225,7 +225,55 @@ the baseline series is read by position, the band thickness by length.
 
 ### Chart 6 — Top 20 artists (horizontal bar)
 
-*TODO during Implement phase. Anchor: Mackinlay — length on aligned scale ranks high for ordered categorical comparison.*
+**Dashboard page:** Artists · task **D4**
+**File reference:** `dashboard.pbix` → page "Artists" → visual "Top 20 artists"
+
+**1. Question answered.**
+Who dominates the chart-track set — which artists appear on the charts most?
+
+**2. Chart type & encoding.**
+- Chart type: **horizontal bar chart**, top 20 artists (Top-N filter).
+- Y axis: `artist_name` → categorical rows, **sorted by the measure descending**.
+- X axis: **chart appearances** (`Snapshots`) → bar **length** on a common aligned scale.
+- Slicer: time period (`dim_date[date]` range or `dim_date[year]`) so "top artists" can be scoped to a window.
+- Horizontal (not vertical) so the long artist names are legible without rotation.
+
+**3. Theory citation.**
+Ranking by magnitude across many categories is exactly what bar length on a common scale does
+best — position/length is the most accurately decoded encoding, and sorting turns the chart into
+a rank.
+> TODO: cite Cleveland & McGill (1984) / Mackinlay — length on an aligned scale is top of the
+> perceptual hierarchy for quantitative comparison. — *documents/<cleveland-mcgill>.pdf, slide N*
+> TODO: cite Few — use **horizontal** bars for long category labels and ranked lists.
+> — *documents/<few-show-me-the-numbers>.pdf, page N*
+
+**4. Alternatives considered and rejected.**
+- **Pie / treemap of artist share** — part-to-whole; terrible for *ranking* 20 items and comparing close magnitudes (area/angle rank low perceptually).
+- **Word cloud of artist names** — sizes text by frequency but has no aligned scale; decorative, not measurable.
+- **Vertical column chart** — 20 long artist names force rotated/truncated labels; horizontal bars read top-to-bottom like a leaderboard.
+
+**5. Trade-offs accepted.**
+- **Metric choice matters — and is the finding.** We rank by **chart appearances** (≈ total
+  popularity, which gives the same order), *not* by average popularity (which floats seasonal /
+  one-hit artists — Mariah Carey 93, Arctic Monkeys 92 — to the top) nor by raw track count
+  (which surfaces prolific-but-niche regional artists — Kelvin Momo 66 tracks but only ~970
+  appearances). Dominance must combine breadth × persistence; appearances/total-popularity
+  capture that, the others don't.
+- **Primary-artist-only.** `artist_key` credits the *primary* artist; featured artists on the
+  40.7% multi-artist tracks are undercounted (known model limitation — see `data_model.md`).
+- **Top-20 truncation** hides the long tail by design (the question is about dominators); the
+  cut is honest because it's a ranked list, not a part-to-whole.
+
+**Evidence & report talking points (per primary artist, full snapshot):**
+- **Bad Bunny is the clear #1** — **51,567 chart appearances** (≈1.6× the #2), **50** distinct
+  charting tracks, avg popularity 90. Latin/reggaetón is strongly over-represented in the top
+  ranks (Bad Bunny, KAROL G, Feid, Blessd).
+- Top-5 by appearances: **Bad Bunny, Billie Eilish, KAROL G, Feid, Sabrina Carpenter**.
+- **Taylor Swift's catalogue breadth stands out** — **100** distinct charting tracks, ~2× any
+  other top artist (deep back-catalogue charting, not just current singles).
+- **Methodological talking point:** "biggest artist" is metric-dependent — appearances → Bad
+  Bunny; track count → Taylor Swift; average popularity → Billie Eilish / Mariah Carey. Naming
+  the metric is part of the answer.
 
 ### Chart 7 — Audio-feature correlation matrix (heatmap)
 

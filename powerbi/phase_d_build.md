@@ -259,3 +259,70 @@ to ~38% (2024–2025).
 ### Step 5 — evidence
 Export screenshots to `report/figures/d3_feature_evolution_line.png` and
 `report/figures/d3_explicit_share_area.png`.
+
+---
+
+## D4 — Artists: top 20 horizontal bar
+
+**Goal:** a horizontal bar of the top 20 artists by chart presence, with a time slicer, on a new
+**Artists** page.
+**Acceptance (todo.md D4):** top-20 horizontal bar by aggregate popularity (or row count); time
+slicer; top-1 matches the profiled leader.
+
+### Metric decision (from the data) — rank by **chart appearances** (`Snapshots`)
+
+Ranking metrics disagree, and the choice *is* the analytical point:
+- **Chart appearances (`Snapshots`)** / **total popularity (`SUM`)** → **Bad Bunny #1** — the
+  right "dominance" metric (breadth × persistence). The two give the same order.
+- **Avg popularity** → floats seasonal/one-hit artists (Mariah Carey 93, Arctic Monkeys 92) — wrong question.
+- **Raw track count** → surfaces prolific-but-niche regional artists (Kelvin Momo 66 tracks, ~970 appearances) — wrong question.
+
+Use **`Snapshots`** (concrete: "appearances on a national daily top-50"); offer `Total
+Popularity` as the literal SPEC "aggregate popularity" reading (same ranking).
+
+### Measures
+**`Snapshots` already exists** (added for D1 — reuse it). *Optional:* add `Total Popularity`
+(`measures.md` → Phase D additions) if you want the literal "aggregate popularity" label. **No
+schema/pipeline change.**
+
+### Step 1 — new page
+Add a report page, rename it **"Artists"**.
+
+### Step 2 — horizontal bar
+1. Insert a **Clustered bar chart** (horizontal).
+2. **Y axis**: `dim_artist[artist_name]`.
+3. **X axis (Values)**: `Snapshots` (or `Total Popularity`).
+4. **Filters → `artist_name` (visual-level)**: filter type **Top N**, **Top 20**, **By value =
+   `Snapshots`**.
+5. Sort the visual by `Snapshots` **descending** (longest bar on top).
+
+### Step 3 — time slicer
+Add a **Slicer** → field `dim_date[year]` (or a `dim_date[date]` *Between* slicer). It filters
+the fact, so the top-20 recomputes for the chosen window. *(Note: this is the **snapshot/chart**
+date — "who charted most in this period" — not release date.)*
+
+### Step 4 — format
+- Title **"Top 20 artists by chart appearances"**; X-axis title **"Chart appearances"**.
+- Data labels on (the magnitudes matter); single colorblind-safe hue; remove the legend.
+- Y-axis: no title; let names fill the rows.
+
+### Step 5 — verify
+Top-1 (unfiltered) must be **Bad Bunny**. Expected top-8 by `Snapshots` (full snapshot):
+
+| Artist | Chart appearances | Distinct tracks |
+|---|---|---|
+| **Bad Bunny** | **51,567** | 50 |
+| Billie Eilish | 32,654 | 17 |
+| KAROL G | 30,757 | 33 |
+| Feid | 29,643 | 42 |
+| Sabrina Carpenter | 29,045 | 24 |
+| Taylor Swift | 21,640 | 100 |
+| The Weeknd | 21,599 | 34 |
+| Jimin | 20,391 | 24 |
+
+Pass: Bad Bunny tops the bar at ~51.6k; the bar is sorted strictly descending. (Switching the
+measure to `Tracks` should instead put **Taylor Swift** #1 at 100 — a quick way to demo the
+metric-choice point.)
+
+### Step 6 — evidence
+Export a screenshot to `report/figures/d4_top_artists_bar.png`.

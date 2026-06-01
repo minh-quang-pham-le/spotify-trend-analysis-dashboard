@@ -133,6 +133,16 @@ COUNTROWS(fact_track_snapshot)
 > **D2 (mood map scatter):** no new measure — reuses `Avg Valence`, `Avg Energy`,
 > `Avg Popularity`. With one mark per `dim_track[track_key]`, each returns that track's value.
 
+```DAX
+Total Popularity =
+SUM(fact_track_snapshot[popularity])
+```
+
+> **D4 (top-20 artists) — OPTIONAL.** The literal SPEC "aggregate popularity". Ranks artists
+> identically to `Snapshots` (popularity is ~uniformly high), so `Snapshots` (already present)
+> is the recommended ranking measure; add this only if you want the "aggregate popularity"
+> label. Format `#,0`.
+
 ## Authoring rules
 
 - **One measure per row in this file.** No silent duplicates in the model.
