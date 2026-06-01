@@ -197,10 +197,11 @@ and the magnitude; a connected line is the canonical idiom for a trend over an o
 Is explicit content becoming more dominant among charting tracks, by release year?
 
 **2. Chart type & encoding.**
-- Chart type: **100% stacked area** (explicit vs. non-explicit share).
+- Chart type: **area chart of `% Explicit`** — the leaner single-series variant (see
+  alternatives), which is **what the dashboard implements**. *(SPEC §8 names a 2-class stacked
+  area; a single `% Explicit` area shows the same information since non-explicit = 100% − explicit.)*
 - X axis: release **year** → position (ordered/time).
-- Y axis: share of distinct tracks (0–100%) → length within the stack.
-- Color: `explicit` (True / False) → 2-class categorical (colorblind-safe, explicit = the accent hue).
+- Y axis: `% Explicit` (0–100%) → height of the filled area.
 
 **3. Theory citation.**
 Part-to-whole composition over an ordered (time) domain is the canonical use of a stacked area;
@@ -326,7 +327,7 @@ How does the *dispersion* (not just the mean) of a chosen feature change across 
 **2. Chart type & encoding.**
 - Chart type: **box plot** (or violin), one box per release-year bucket.
 - X axis: release-year bucket (e.g., `≤2019`, `2020–2022`, `2023`, `2024`, `2025`) → categorical position.
-- Y axis: chosen feature value (e.g., danceability or energy) → position; box = IQR + median, whiskers, outlier dots.
+- Y axis: **acousticness** (chosen — largest dispersion change across buckets) → position; box = IQR + median, whiskers, outlier dots.
 
 **3. Theory citation.**
 > TODO: cite Tukey / Munzner — the box plot is the canonical idiom for comparing a distribution's
@@ -337,13 +338,24 @@ How does the *dispersion* (not just the mean) of a chosen feature change across 
 - **Violin plot** — richer (shows multimodality) but heavier; a fallback if the box hides shape.
 - **Jittered strip plot** — overplots badly at ~25k tracks.
 
-**5. Trade-offs accepted & ⚠ dependency.**
-- **Blocked on two things:** (a) Power BI has **no native box plot** — needs a custom visual
-  (AppSource "Box & Whisker") or a Python/R visual; (b) the **release-year bucket depends on the
-  deferred D3 `release_year` decision** (release date lives on `dim_album`, not `dim_track`).
-  **Recommendation: build Chart 8 after the D3 modeling decision is resolved** (denormalising
-  `release_year` onto `dim_track` makes the bucket trivial). Survivorship caveat applies (pre-2023
-  buckets are thin, survivor-biased).
+**5. Trade-offs accepted.**
+- **No native box plot** — needs a custom visual (AppSource "Box & Whisker", MAQ) or a Python/R
+  visual; that's the only remaining build dependency (the `release_year` bucket is now on
+  `dim_track`, so the data side is unblocked).
+- **Survivorship bias** — the `≤2019` and `2020-22` buckets are thin survivor tracks, not
+  era-representative; state it on the chart.
+- **Skew** — a right-skewed feature (e.g. speechiness) squashes the box near 0 with a long
+  outlier tail; **acousticness is well-spread, so its box reads cleanly** — part of why it was chosen.
+
+**Chosen feature & evidence (acousticness, by release-year bucket — median / IQR):**
+`≤2019` 0.252 / 0.466 · `2020-22` 0.298 / 0.483 · `2023` 0.194 / 0.350 · `2024` 0.184 / 0.343 ·
+`2025` 0.166 / 0.321. **Story:** charting music's acousticness has both **fallen** (median
+0.25 → 0.17) **and narrowed** (IQR 0.47 → 0.32) — older charting tracks ranged from acoustic
+ballads to electronic, while 2024–25 hits cluster tightly at low acousticness (more uniformly
+produced / electronic). Coheres with the heatmap's energy↔acousticness = −0.50 and the D3
+falling-acousticness line. **Alternative feature — speechiness** tells the *opposite* (widening)
+story: IQR 0.03 → 0.13, Q3 quadrupling (0.07 → 0.18) as rap/spoken content entered the charts;
+pick it instead if you'd rather show a *spreading* distribution.
 
 ### Chart 9 — Geographic map (filled map)
 

@@ -379,22 +379,31 @@ symmetric**):
 Sanity: strongest cell is energy×loudness (+0.70); energy×acousticness (−0.50) is the strongest
 negative. Export → `report/figures/d5_correlation_heatmap.png`.
 
-### Part B — Box plot by group (Chart 8) — needs a box-plot visual
+### Part B — Box plot by group (Chart 8) — feature/buckets chosen; needs a box-plot visual
 
-1. ✅ **Release-year bucket is now available** — `dim_track[release_year]` exists. Add a calc
-   column, e.g.:
+**Feature: `acousticness`** (chosen for the largest, cleanest dispersion change — see below).
+**Buckets:** 5, all well-populated (`≤2019`=3,129 · `2020-22`=1,630 · `2023`=4,693 · `2024`=10,867 · `2025`=4,652).
+
+1. ✅ **Release-year bucket** — `dim_track[release_year]` exists. Add this calc column:
    ```DAX
    Release bucket =
    SWITCH(TRUE(),
        ISBLANK(dim_track[release_year]), "Unknown",
-       dim_track[release_year] >= 2024, "2024+",
+       dim_track[release_year] >= 2025, "2025",
+       dim_track[release_year] >= 2024, "2024",
        dim_track[release_year] >= 2023, "2023",
        dim_track[release_year] >= 2020, "2020-22",
        "2019 & earlier")
    ```
+   Filter out `"Unknown"` (5 tracks). The labels sort chronologically as-is.
 2. ⚠ **No native box plot — the one remaining blocker.** Install the AppSource **"Box and
    Whisker chart"** (MAQ Software) custom visual, or use a Python visual (`seaborn.boxplot`).
+3. Category/X = `Release bucket`; Sampling/Value = `dim_track[acousticness]` (the visual computes
+   the quartiles). Title "Acousticness by release-year bucket".
 
-Then: category/X = `Release bucket`, value/Y = a feature (danceability or energy). Survivorship
-caveat applies (pre-2023 buckets are thin / survivor-biased). Export →
-`report/figures/d5_feature_boxplot.png`.
+**Verify** (acousticness median / IQR per bucket): `≤2019` 0.252 / 0.466 · `2020-22` 0.298 / 0.483
+· `2023` 0.194 / 0.350 · `2024` 0.184 / 0.343 · `2025` 0.166 / 0.321. The boxes should **drop and
+shrink** from 2023 on (median ↓, IQR ↓). Survivorship caveat: the two oldest buckets are thin.
+
+*(Alternative feature `speechiness` — opposite story, IQR 0.03→0.13, Q3 0.07→0.18 — if you'd
+rather show a widening distribution.)* Export → `report/figures/d5_feature_boxplot.png`.
