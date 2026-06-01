@@ -91,7 +91,63 @@ The Power BI histogram should reproduce these proportions (the D1 verification c
 
 ### Chart 3 — Energy × Valence mood map (scatter)
 
-*TODO during Implement phase. Anchor: Cleveland & McGill — position on a common scale ranks first for quantitative comparison.*
+**Dashboard page:** Mood Map · task **D2**
+**File reference:** `dashboard.pbix` → page "Mood Map" → visual "Energy × Valence scatter"
+
+**1. Question answered.**
+Where in the energy–valence ("mood") plane do tracks sit, and do *popular* tracks occupy a
+distinct region? (Answer from the data: **no** — popularity barely correlates with valence
+(r = 0.08) or energy (r = 0.05); popular tracks are spread across the plane, only marginally
+above the overall mean. See §"Clustering evidence".)
+
+**2. Chart type & encoding.**
+- Chart type: **scatter plot**, one mark per distinct track (`dim_track[track_key]` in Details).
+- X axis: `Avg Valence` (0–1) → horizontal **position** on a common scale.
+- Y axis: `Avg Energy` (0–1) → vertical **position** on a common scale.
+- Color: `Avg Popularity` (0–100) → sequential color **gradient** (secondary / overview channel).
+- Size: **none** — the source has no stream counts (SPEC §8); a `duration_ms` size channel was
+  rejected as a low-value area encoding (see alternatives).
+- Tooltip: track name, primary artist, Avg Popularity, Avg Valence, Avg Energy.
+
+**3. Theory citation.**
+The question is fundamentally *spatial* ("where in the plane"), so both quantitative variables
+map to the **position** channels — the most accurately decoded encoding in the perceptual
+hierarchy — while popularity, a secondary overlay, takes color (lower in the hierarchy, but
+adequate for the gestalt judgement "are the bright marks clustered?").
+> TODO: cite Cleveland & McGill (1984) — position along a common scale is the most accurately
+> decoded graphical-perception task; color/saturation rank far lower.
+> — *documents/<cleveland-mcgill-slides>.pdf, slide N*
+> TODO: cite Bertin — X and Y are the two planar visual variables; using both for the primary
+> quantities is the canonical encoding of a 2-D relationship.
+> — *documents/<bertin-slides>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Two separate histograms (valence, energy)** — show each marginal distribution but destroy
+  the *joint* structure; you couldn't tell whether high-energy tracks are also high-valence,
+  which is the entire point of a mood plane.
+- **2-D density heatmap / hexbin** — handles 25k-point overplotting better, but hides
+  individual tracks (no tooltip drill-down) and is not a native Power BI visual; we instead
+  accept overplotting via marker transparency + high-density sampling.
+- **Adding size = `duration_ms`** — area ranks low in the perceptual hierarchy and duration is
+  tangential to the mood question; it would add ink without answering it.
+
+**5. Trade-offs accepted.**
+- **Overplotting & sampling.** 24,976 tracks exceed Power BI's scatter render cap (~10,000 with
+  high-density sampling on), so the visual plots a representative *sample*, not every point. The
+  cluster shape is preserved; the exact count comes from a `Tracks` card. Mitigation: marker
+  transparency and an optional `Avg Popularity` slicer to focus on the popular subset (which
+  also drops the plotted count under the cap).
+- **Color is a weak quantitative channel.** Because popularity barely varies across the plane,
+  the gradient reads as near-uniform — which is *itself the finding* (popularity is not
+  regional). Color earns little here; the honest read is "position shows the mood spread; color
+  shows popularity is not explained by mood."
+
+**Clustering evidence (from `dim_track.csv` + per-track mean popularity over the fact):**
+all 24,976 tracks have non-null valence & energy. Overall mean valence 0.533, energy 0.654.
+By popularity band (mean valence, mean energy) — `<40`: (0.500, 0.637) · `40–60`: (0.540, 0.655)
+· `60–75`: (0.547, 0.665) · `75+`: (0.547, 0.656). Correlation of mean popularity with valence
+= 0.078, with energy = 0.045. Conclusion: popular tracks are **not** confined to a
+high-energy/high-valence corner.
 
 ### Chart 4 — Temporal evolution of audio features (line)
 

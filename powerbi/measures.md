@@ -130,6 +130,9 @@ COUNTROWS(fact_track_snapshot)
 > Using `Tracks` on the histogram Y-axis would (mis)count distinct tracks per bin instead.
 > Format string `#,0`.
 
+> **D2 (mood map scatter):** no new measure — reuses `Avg Valence`, `Avg Energy`,
+> `Avg Popularity`. With one mark per `dim_track[track_key]`, each returns that track's value.
+
 ## Authoring rules
 
 - **One measure per row in this file.** No silent duplicates in the model.

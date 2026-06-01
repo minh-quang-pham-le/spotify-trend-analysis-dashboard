@@ -170,10 +170,11 @@ Each task ends with: (a) chart built, (b) screenshot exported to `report/figures
   - Status (2026-06-01): ✅ **DONE.** Framing locked: **snapshot-level** (`Snapshots` measure as Y, `popularity` binned width 10). Built on the Overview page beside the 4 KPI cards; screenshot `report/figures/d1_overview_popularity_histogram.png` inspected and **verified** to match the profiled shape — left-skewed, bars grow toward high popularity, peak at the 80–90 bin (≈29.8%, ~67% of snapshots ≥ 70), *not* uniform. Justification = `report/chart_justifications.md` Chart 2 (theory anchors still TODO until `documents/` is populated). Build steps = `powerbi/phase_d_build.md` D1.
   - Note (minor polish, not D1-blocking): on the Overview KPI cards, set format strings — `% Explicit` → `0.0%` (currently renders `0.33`) and `Avg Popularity` → `#,0.0` (renders `75.91`). Per `powerbi/measures.md` authoring rules.
 
-- [ ] **D2. Page: Mood Map — energy × valence scatter.**
+- [~] **D2. Page: Mood Map — energy × valence scatter.**
   - Acceptance: Scatter plot. X = valence, Y = energy, color = popularity, optional size = streams. Tooltip shows track name + artist.
   - Verify: data-point count matches `# Tracks` in the model (within reasonable filter context).
   - Depends on: C4.
+  - Status (2026-06-01): **groundwork done** (no Power BI Desktop yet). Computed from `dim_track.csv` + per-track popularity: all 24,976 tracks have non-null valence & energy (full plottable set); popularity ≈uncorrelated with valence (r=0.08) / energy (r=0.05); popular tracks sit at valence ≈0.55, energy ≈0.66 vs overall 0.53/0.65 → **popular songs are spread across the plane, not clustered**. Deliverables: justification = `report/chart_justifications.md` Chart 3; build steps = `powerbi/phase_d_build.md` D2. **No new measures** — reuses `Avg Valence`, `Avg Energy`, `Avg Popularity`. **Remaining (Power BI Desktop):** new "Mood Map" page → scatter (Details=`dim_track[track_key]`, X=`Avg Valence`, Y=`Avg Energy`, color gradient=`Avg Popularity`) → tooltip → high-density sampling/transparency for 25k points → verify `Tracks`=24,976 → export `report/figures/d2_mood_map_scatter.png`. ⚠ Note: 25k tracks exceed the ~10k scatter render cap → sampling; optional `Avg Popularity ≥ 60` filter focuses on popular tracks.
 
 - [ ] **D3. Page: Temporal Trends — feature evolution + explicit share.**
   - Acceptance: Line chart of avg(danceability/energy/acousticness/valence) by release year. Stacked area of explicit-share by release year (or year-quarter if year resolution is too coarse).

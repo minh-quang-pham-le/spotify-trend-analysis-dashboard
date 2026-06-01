@@ -106,3 +106,67 @@ This answers the catalogue question but is **inconsistent with the Avg Popularit
 same page (75.9 vs a ~55 center). **Decision (2026-06-01): snapshot-level chosen for the
 Overview**; this track-level variant is retained only as a possible *separate* analysis page
 later — not built.
+
+---
+
+## D2 — Mood Map: energy × valence scatter
+
+**Goal:** a scatter of `valence` (X) × `energy` (Y), colored by popularity, **one mark per
+track**, on a new **Mood Map** page.
+**Acceptance (todo.md D2):** scatter X=valence, Y=energy, color=popularity; tooltip shows
+track + artist; point count matches `Tracks` within filter context.
+
+### Measures
+
+**None new required.** Reuse the existing (Gate-G4-verified) measures `Avg Valence`,
+`Avg Energy`, `Avg Popularity`. At one-mark-per-track grain each returns that track's own value
+(valence/energy are static per track; popularity is the track's mean across its snapshots).
+
+### Step 1 — new page
+Add a report page, rename it **"Mood Map"**.
+
+### Step 2 — scatter chart
+1. Insert a **Scatter chart**.
+2. **Values → Details**: `dim_track[track_key]` — this forces **one mark per distinct track**
+   (what makes the point count equal `Tracks`). Use `track_key`, *not* `track_name`, so
+   same-named tracks by different artists don't merge.
+3. **X axis**: `Avg Valence`.
+4. **Y axis**: `Avg Energy`.
+5. Leave **Size** empty.
+
+### Step 3 — color by popularity (continuous gradient)
+Format → **Markers → Colors → fx** (conditional formatting) → Format style **Gradient**, based
+on **`Avg Popularity`**, min→max over 0–100 (light = low, dark = high).
+*(Alternative: a discrete popularity band on the Legend — needs a calc column on `dim_track`;
+the gradient avoids that and matches SPEC's "color by popularity".)*
+
+### Step 4 — tooltip
+Add to the **Tooltips** well: `dim_track[track_name]`, `dim_artist[artist_name]`,
+`Avg Popularity`, `Avg Valence`, `Avg Energy`. (Artist resolves through the fact relationship —
+each `track_key` maps to one primary `artist_key`.)
+
+### Step 5 — handle 25k points (overplotting)
+- **High-density sampling ON** (default for scatter). 24,976 tracks > the ~10k render cap, so
+  Power BI plots a representative sample; the shape holds, the underlying count is exact on a
+  `Tracks` card.
+- Markers → transparency ~30–50% so dense regions read as shade.
+- Optional: an **`Avg Popularity` slicer** (or visual-level filter `Avg Popularity ≥ 60`) to
+  focus on popular tracks and bring the plotted count under the cap.
+
+### Step 6 — format
+- Title: **"Mood map — energy vs. valence (one mark per track)"**.
+- X-axis title **"Valence (musical positiveness, 0–1)"**, axis range **0–1**; Y-axis title
+  **"Energy (0–1)"**, range **0–1**.
+- Optional: constant lines at x = 0.5 and y = 0.5 to read the four mood quadrants
+  (calm-positive / happy-energetic / sad-calm / tense-aggressive).
+- Colorblind-safe **sequential** gradient (cross-cutting palette — set once).
+
+### Step 7 — verify
+- Drop a temporary `Tracks` card on the page → reads **24,976** (unfiltered) = the underlying
+  mark population. *(Rendered marks may be sampled to ~10k — expected, not a failure.)*
+- Visual sanity: marks fill the plane centered around **valence ≈ 0.53, energy ≈ 0.65**, and
+  the color gradient looks **near-uniform across the plane** (popularity is not regional —
+  the expected finding, r ≈ 0.08 / 0.05).
+
+### Step 8 — evidence
+Export a screenshot to `report/figures/d2_mood_map_scatter.png` (gitignored — local/report use).
