@@ -163,10 +163,12 @@
 
 Each task ends with: (a) chart built, (b) screenshot exported to `report/figures/`, (c) draft justification section in `report/chart_justifications.md` (TODOs for theory citations OK at this point).
 
-- [ ] **D1. Page: Overview — popularity histogram.** *(extends C4's page)*
+- [x] **D1. Page: Overview — popularity histogram.** *(extends C4's page)*
   - Acceptance: Histogram of `popularity` with sensible binning. Visible alongside the KPI cards.
   - Verify: visual matches the distribution shape from A2 profiling.
   - Depends on: C4.
+  - Status (2026-06-01): ✅ **DONE.** Framing locked: **snapshot-level** (`Snapshots` measure as Y, `popularity` binned width 10). Built on the Overview page beside the 4 KPI cards; screenshot `report/figures/d1_overview_popularity_histogram.png` inspected and **verified** to match the profiled shape — left-skewed, bars grow toward high popularity, peak at the 80–90 bin (≈29.8%, ~67% of snapshots ≥ 70), *not* uniform. Justification = `report/chart_justifications.md` Chart 2 (theory anchors still TODO until `documents/` is populated). Build steps = `powerbi/phase_d_build.md` D1.
+  - Note (minor polish, not D1-blocking): on the Overview KPI cards, set format strings — `% Explicit` → `0.0%` (currently renders `0.33`) and `Avg Popularity` → `#,0.0` (renders `75.91`). Per `powerbi/measures.md` authoring rules.
 
 - [ ] **D2. Page: Mood Map — energy × valence scatter.**
   - Acceptance: Scatter plot. X = valence, Y = energy, color = popularity, optional size = streams. Tooltip shows track name + artist.

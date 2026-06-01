@@ -114,6 +114,22 @@ Avg Popularity by Country =
 AVERAGEX(VALUES(dim_country[country_key]), [Avg Popularity])
 ```
 
+## Phase D additions (author in Power BI Desktop — NOT yet in the file)
+
+These are needed by Phase D pages and are **not** part of the Gate-G4-verified set above —
+author them in Power BI Desktop as each page is built, then move them up once confirmed.
+
+```DAX
+Snapshots =
+COUNTROWS(fact_track_snapshot)
+```
+
+> **D1 (popularity histogram) Y-axis.** Counts fact rows = chart appearances
+> (track × country × day) → ~2,110,287 total. Deliberately **distinct from `Tracks`**
+> (`DISTINCTCOUNT(track_key)` = 24,976): the histogram bins snapshots, not unique tracks.
+> Using `Tracks` on the histogram Y-axis would (mis)count distinct tracks per bin instead.
+> Format string `#,0`.
+
 ## Authoring rules
 
 - **One measure per row in this file.** No silent duplicates in the model.

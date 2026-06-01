@@ -51,7 +51,43 @@ Every chart in the dashboard gets one section here. Each section follows the rub
 
 ### Chart 2 — Popularity distribution histogram
 
-*TODO during Implement phase.*
+**Dashboard page:** Overview (alongside the KPI cards) · task **D1**
+**File reference:** `dashboard.pbix` → page "Overview" → visual "Popularity histogram"
+
+**1. Question answered.**
+Is Spotify `popularity` uniformly spread, or concentrated/long-tailed across the tracks
+that chart? (Answer from the data: **not uniform — strongly left-skewed toward high
+values.** See §"Distribution evidence" below.)
+
+**2. Chart type & encoding.**
+- Chart type: **histogram** (clustered column chart over a binned quantitative axis).
+- X axis: `popularity` bucketed into 10 equal-width bins of 10 (`[0,10) … [90,100]`) → horizontal position (ordered).
+- Y axis: count of chart snapshots (`Snapshots` measure) → bar **length** on an aligned scale.
+- Color: single colorblind-safe hue (see *Cross-cutting design choices*); no color encoding — one variable only.
+
+**3. Theory citation.**
+The histogram is the canonical idiom for the *characterize-distribution* task over a single
+quantitative attribute, and its encodings (position on a common scale + aligned length) are
+the two most accurately decoded channels in the perceptual hierarchy.
+> TODO: cite Munzner, *Visualization Analysis & Design* — "histogram … shows the distribution of a single quantitative attribute" (idiom for the *characterize distribution* task).
+> — *documents/<munzner-or-course-slides>.pdf, slide N*
+> TODO: cite Cleveland & McGill (1984) perceptual hierarchy — position/length rank above area, angle, and color for quantitative comparison.
+> — *documents/<cleveland-mcgill-slides>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Box plot** — a compact five-number summary, but it *hides shape*: it would show the high median (79) and a long low whisker, yet conceal the heavy spike in the 80–90 bin and the small low-end bump at 0–10. Our question is explicitly about shape, so a box plot answers the wrong task.
+- **Density / violin (KDE)** — smooths the counts behind a bandwidth choice and is not a native Power BI visual (needs a custom/Python visual); on an Overview page next to KPI cards, discrete bars are more legible and reproducible.
+- **A single "Avg Popularity" card** — already on the page (75.9). It *collapses* the distribution to one number and hides the left skew; the histogram earns its space precisely because the mean conceals the spread (p05=49, p95=96).
+
+**5. Trade-offs accepted.**
+- **Unit of analysis.** This histogram counts **chart snapshots** (track × country × day), so it over-weights songs that chart in many countries for many days — the bars describe *chart-appearance frequency*, not the distinct-track catalogue. The distinct-track distribution sits far lower (mean ≈ 52.8, median ≈ 55.7). Mitigation: label the axis/tooltip "chart snapshots", and report the track-level framing in the Findings section (and optionally as a drill-through). *(Decision 2026-06-01: snapshot-level chosen for the Overview, for consistency with the Avg Popularity KPI; the track-level catalogue variant is documented in `powerbi/phase_d_build.md` for a possible separate page.)*
+- **Binning** (width 10) hides within-bin structure and within-track variation (median popularity spread per track is 10 points, p90 is 51). Acceptable for an at-a-glance Overview shape; finer dispersion analysis lives on the Audio Anatomy page (Chart 8).
+
+**Distribution evidence (from `data/processed/fact_track_snapshot.csv`, 2025-06-11 snapshot):**
+snapshot-level mean = 75.9, median = 79, skew = −1.10; bin shares —
+`[0,10)` 0.6% · `[10,20)` 0.1% · `[20,30)` 0.2% · `[30,40)` 0.7% · `[40,50)` 3.5% ·
+`[50,60)` 10.8% · `[60,70)` 16.1% · `[70,80)` 18.2% · `[80,90)` 29.8% · `[90,100]` 19.2%.
+The Power BI histogram should reproduce these proportions (the D1 verification check).
 
 ### Chart 3 — Energy × Valence mood map (scatter)
 
