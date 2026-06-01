@@ -4,114 +4,120 @@ The authoritative list of measures in `dashboard.pbix`. Author each inside Power
 Desktop (Modeling → New measure) and keep its final form here so the catalogue stays
 in sync (this file IS the contract — no silent measures or duplicates in the model).
 
-> Table names use the `data_model.md` contract (PascalCase: `Fact_TrackSnapshot`,
-> `Dim_Track`, …). If your model still has the CSV-derived lowercase names, rename the
-> tables first (see `powerbi/g4_remediation.md`); Power BI updates measure references
-> automatically on rename.
+> **Table names match the committed `.pbix`: lowercase, CSV-derived**
+> (`fact_track_snapshot`, `dim_track`, `dim_artist`, `dim_album`, `dim_date`,
+> `dim_country`). Verified 2026-06-01 by inspecting the file's `DiagramLayout` (all six
+> table nodes are lowercase) and `Report/Layout`. An earlier draft of this catalogue used
+> PascalCase (`Fact_TrackSnapshot`, …) as an aspirational contract and assumed the Gate-G4
+> rename had been applied; it had **not**. Rather than redo the rename in Power BI Desktop,
+> the team decided (Gate G4 review) to **accept the file's names as-is and align the docs**.
+> The PascalCase rename remains available if ever wanted — see `g4_remediation.md`.
+
+## Verification status
+
+All measures in this catalogue were **verified in Power BI Desktop on 2026-06-01** (Gate G4)
+— they exist and evaluate without error. The four Overview KPIs are additionally confirmed
+from the committed file's `Report/Layout` (a measure must be bound to a visual to appear
+there); the rest are confirmed by the manual Gate-G4 check:
+
+| Measure | Status | Evidence |
+|---|---|---|
+| `Tracks` | **confirmed** | Overview KPI card 1 (report layer) + Gate-G4 manual check |
+| `Distinct Artists` | **confirmed** | Overview KPI card 2 (report layer) + Gate-G4 manual check |
+| `Avg Popularity` | **confirmed** | Overview KPI card 3 (report layer) + Gate-G4 manual check |
+| `% Explicit` | **confirmed** | Overview KPI card 4 (report layer) + Gate-G4 manual check |
+| all measures below | **confirmed** | Gate-G4 manual verification in Power BI Desktop (2026-06-01) |
+
+> The four Overview count/ratio measures live on `fact_track_snapshot`. Note the count
+> measures are bare (`Tracks`, `Distinct Artists`) — **not** `#`-prefixed. The DAX below
+> reflects that.
 
 ## Naming convention
 
 | Pattern | Example | Meaning |
 |---|---|---|
-| `# X` | `# Tracks` | Count |
+| `X` (bare noun) | `Tracks` | Count |
 | `Avg X` | `Avg Popularity` | Mean of X |
 | `% X` | `% Explicit` | Share / ratio |
 | `X YoY` | `Avg Popularity YoY` | Year-over-year delta |
-
-## Reconciliation from the first build (Gate G4)
-
-The first `dashboard.pbix` shipped measures under different names plus duplicates/dead
-measures. Rename / delete to reach this catalogue:
-
-| In the first model | Action | Canonical name |
-|---|---|---|
-| `Tracks Count` | rename | `# Tracks` |
-| `Artists Count` | rename | `# Distinct Artists` |
-| `Albums Count` | rename | `# Albums` |
-| `Average Popularity` | rename | `Avg Popularity` |
-| `Average Rank` | rename | `Avg Rank` |
-| `Explicit %` | rename | `% Explicit` |
-| `Avg Danceability/Energy/Valence/Tempo/Acousticness` | keep | (unchanged) |
-| `Total Tracks` | **delete** | duplicate of `# Tracks` |
-| `Total Artists` | **delete** | duplicate of `# Distinct Artists` (also referenced the broken `artist_key ` column) |
-| `Average Daily Streams` | **delete** | `daily_streams` is all-null in this source — measure is always blank |
 
 ---
 
 ## KPI measures
 
 ```DAX
-# Tracks =
-DISTINCTCOUNT(Fact_TrackSnapshot[track_key])
+Tracks =
+DISTINCTCOUNT(fact_track_snapshot[track_key])
 
-# Distinct Artists =
-DISTINCTCOUNT(Fact_TrackSnapshot[artist_key])
+Distinct Artists =
+DISTINCTCOUNT(fact_track_snapshot[artist_key])
 
-# Albums =
-DISTINCTCOUNT(Fact_TrackSnapshot[album_key])
+Albums =
+DISTINCTCOUNT(fact_track_snapshot[album_key])
 
 Avg Popularity =
-AVERAGE(Fact_TrackSnapshot[popularity])
+AVERAGE(fact_track_snapshot[popularity])
 
 Avg Rank =
-AVERAGE(Fact_TrackSnapshot[rank])
+AVERAGE(fact_track_snapshot[rank])
 
 % Explicit =
 DIVIDE(
-    CALCULATE(COUNTROWS(Dim_Track), Dim_Track[explicit] = TRUE()),
-    COUNTROWS(Dim_Track)
+    CALCULATE(COUNTROWS(dim_track), dim_track[explicit] = TRUE()),
+    COUNTROWS(dim_track)
 )
 ```
 
-> The four cards required on the **Overview** page (per todo.md C4) are
-> `# Tracks`, `# Distinct Artists`, `Avg Popularity`, `% Explicit`.
+> The four cards on the **Overview** page (per todo.md C4) are
+> `Tracks`, `Distinct Artists`, `Avg Popularity`, `% Explicit` — all confirmed present.
 > The count KPIs use `DISTINCTCOUNT` on the **fact** so they respond to slicers
-> (date / country) — `COUNTROWS(Dim_Track)` would ignore fact-side filters.
+> (date / country) — `COUNTROWS(dim_track)` would ignore fact-side filters.
 
-## Audio-feature aggregates (defined on Dim_Track)
+## Audio-feature aggregates (defined on dim_track)
 
 ```DAX
-Avg Danceability = AVERAGE(Dim_Track[danceability])
-Avg Energy       = AVERAGE(Dim_Track[energy])
-Avg Valence      = AVERAGE(Dim_Track[valence])
-Avg Tempo        = AVERAGE(Dim_Track[tempo])
-Avg Acousticness = AVERAGE(Dim_Track[acousticness])
+Avg Danceability = AVERAGE(dim_track[danceability])
+Avg Energy       = AVERAGE(dim_track[energy])
+Avg Valence      = AVERAGE(dim_track[valence])
+Avg Tempo        = AVERAGE(dim_track[tempo])
+Avg Acousticness = AVERAGE(dim_track[acousticness])
 ```
 
 > `Avg Tempo` ignores blanks automatically — the one `tempo = 0` row is null in
-> `Dim_Track` (see `data_model.md`), so it does not drag the mean toward zero.
+> `dim_track` (see `data_model.md`), so it does not drag the mean toward zero.
 
-## Time-intelligence (require Dim_Date marked as a Date Table — already done)
+## Time-intelligence (require dim_date marked as a Date Table)
 
 ```DAX
 Avg Popularity YoY =
 VAR _current = [Avg Popularity]
 VAR _prior =
-    CALCULATE([Avg Popularity], SAMEPERIODLASTYEAR(Dim_Date[date]))
+    CALCULATE([Avg Popularity], SAMEPERIODLASTYEAR(dim_date[date]))
 RETURN
     DIVIDE(_current - _prior, _prior)
 
 Tracks Last 30 Days =
 CALCULATE(
-    [# Tracks],
-    DATESINPERIOD(Dim_Date[date], MAX(Dim_Date[date]), -30, DAY)
+    [Tracks],
+    DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)
 )
 ```
 
-> Depends on `[Avg Popularity]` and `[# Tracks]` existing first.
-> `SAMEPERIODLASTYEAR` / `DATESINPERIOD` need `Dim_Date` marked as a Date Table on
-> `Dim_Date[date]` — verified present (`DataCategory = "Time"`, `date` IsKey).
+> Depends on `[Avg Popularity]` and `[Tracks]` existing first.
+> `SAMEPERIODLASTYEAR` / `DATESINPERIOD` need `dim_date` marked as a Date Table on
+> `dim_date[date]` — **verified marked** in Power BI Desktop (Gate G4, 2026-06-01).
 
-## Country comparison (Dim_Country is in scope)
+## Country comparison (dim_country is in scope)
 
 ```DAX
 Avg Popularity by Country =
-AVERAGEX(VALUES(Dim_Country[country_key]), [Avg Popularity])
+AVERAGEX(VALUES(dim_country[country_key]), [Avg Popularity])
 ```
 
 ## Authoring rules
 
 - **One measure per row in this file.** No silent duplicates in the model.
 - **Format strings** set in Power BI: `% Explicit` / `Avg Popularity YoY` → `0.0%`;
-  count measures (`# …`) → `#,0`; `Avg Popularity` → `#,0.0`.
+  count measures (`Tracks`, `Distinct Artists`, `Albums`) → `#,0`;
+  `Avg Popularity` → `#,0.0`.
 - **Never reference raw column aggregations** in visuals — always go through a named measure.

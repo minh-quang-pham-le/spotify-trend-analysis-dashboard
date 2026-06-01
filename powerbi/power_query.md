@@ -4,6 +4,13 @@ Copy-paste-ready M for every table in the model. Paste into Power BI Desktop via
 **Home → Transform data → (select query) → Advanced Editor**, or recreate the
 queries from scratch.
 
+> **Naming (2026-06-01):** the committed `.pbix` keeps the **lowercase** query/table names
+> (`fact_track_snapshot`, `dim_track`, …) and the docs were aligned to match (see
+> `measures.md` / `data_model.md`). The PascalCase names this file mentions in Step 2 were
+> the superseded contract — keep queries lowercase unless you deliberately follow
+> `g4_remediation.md`. The M fixes below (`Table.PromoteHeaders`, `QuoteStyle.Csv`, the
+> `pProcessedFolder` parameter) are correctness fixes and apply **regardless** of naming.
+
 These replace the queries shipped in the first `dashboard.pbix`, which had three
 defects found at Gate G4:
 

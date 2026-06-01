@@ -212,7 +212,7 @@ A copy of `SPEC.md §1` success criteria, repeated so this plan is self-containe
 - [ ] `make build` regenerates `data/processed/` from a fresh clone with zero manual steps beyond placing the raw CSV.
 - [ ] Star-schema FK integrity holds (validated by `pytest`).
 - [ ] No row in `Fact_TrackSnapshot` is missing `popularity` or `track_key`.
-- [ ] Dedup uses ISRC first, fallback to canonicalized `(track_name, artist)`.
+- [ ] Dedup uses `spotify_id` first, fallback to canonicalized `(track_name, artist)`. *(Revised from ISRC-first at Gate G1 — the Asaniczka dataset has no ISRC; see SPEC.md §9 and `powerbi/data_model.md`.)*
 - [ ] `dashboard.pbix` imports all CSVs without Power Query errors and renders every dashboard page.
 - [ ] Every chart has a justification in `chart_justifications.md` citing at least one `documents/` source.
 - [ ] README enables a teammate to set up the project from scratch in ≤ 15 minutes.

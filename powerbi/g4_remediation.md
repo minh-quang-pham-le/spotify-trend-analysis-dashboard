@@ -1,5 +1,20 @@
 # Gate G4 Remediation Runbook
 
+> **Status (2026-06-01): PARTIALLY APPLIED — kept for reference, not the current contract.**
+> Inspecting the committed `dashboard.pbix` (report layer + `DiagramLayout`) shows that of
+> the renames below, only the **card swap (Step 6 / F7)** actually landed — the 4th Overview
+> card is `% Explicit`. The **table renames (Step 2 / F4) were NOT applied** (all six tables
+> are still lowercase: `fact_track_snapshot`, `dim_track`, …), and the **count measures kept
+> bare names** (`Tracks`, `Distinct Artists`) rather than the `#`-prefixed names in Step 3.
+> Steps 1/4/5 (header fixes, missing measures, Auto-date) touch the compressed `DataModel`
+> and are **not verifiable outside Power BI Desktop**.
+>
+> The team decided (Gate G4 review) to **accept the file's current lowercase table names and
+> bare measure names as-is** and align the docs (`measures.md`, `data_model.md`) to the file,
+> rather than redo the PascalCase rename. **This runbook is therefore the "if you ever want
+> the contract names" path, not the active plan.** If you follow it, also revert the doc
+> banners that now describe lowercase names.
+
 Exact Power BI Desktop steps to clear the Gate G4 blockers. Everything that can be
 prepared as code lives in [`power_query.md`](power_query.md) (M) and
 [`measures.md`](measures.md) (DAX); this runbook is the click-by-click sequence to

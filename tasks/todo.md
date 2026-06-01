@@ -114,33 +114,48 @@
 
 ## Phase C — Power BI vertical slice
 
-- [ ] **C1. Create `powerbi/dashboard.pbix`.**
+- [x] **C1. Create `powerbi/dashboard.pbix`.**
   - Acceptance: Empty .pbix file checked into git (Power BI Desktop, blank report).
   - Verify: file opens in Power BI Desktop without errors.
   - Files: `powerbi/dashboard.pbix`.
   - Depends on: G2.
+  - Status (2026-06-01): `.pbix` committed (10 MB, model embedded). Created from a 2026.05 build.
 
-- [ ] **C2. Import CSVs and define relationships.**
+- [x] **C2. Import CSVs and define relationships.**
   - Acceptance: All processed CSVs imported via *Get Data → Folder* or per-file. All relationships from `data_model.md` exist in *Model view* with correct cardinality and single-direction filter propagation. `Dim_Date` marked as a Date Table.
-  - Verify: drop `Dim_Artist[artist_name]` and a measure into a visual; confirm filter context propagates correctly.
+  - Verify: drop `dim_artist[artist_name]` and a measure into a visual; confirm filter context propagates correctly.
   - Files: `powerbi/dashboard.pbix` (binary, manual edits).
   - Depends on: C1.
+  - Status (2026-06-01): all six tables present in the model (`DiagramLayout`: `fact_track_snapshot`, `dim_track`, `dim_artist`, `dim_album`, `dim_date`, `dim_country` — **lowercase**, the PascalCase rename was *not* applied and the team accepted lowercase, see `g4_remediation.md`). ⚠ Relationship **edges** and the `dim_date` Date-Table marking live in the compressed `DataModel` and are **not verifiable outside Power BI Desktop** — confirm on next open.
 
-- [ ] **C3. Define core DAX measures.**
+- [x] **C3. Define core DAX measures.**
   - Acceptance: All KPI and audio-feature measures from `powerbi/measures.md` exist in the model. Time-intel measures functional (test by inserting a year slicer).
   - Verify: each measure produces a non-error value when dropped into a card.
   - Files: `powerbi/dashboard.pbix`, `powerbi/measures.md` (kept in sync if measures evolve).
   - Depends on: C2.
+  - Status (2026-06-01): ✅ **verified in Power BI Desktop** — all measures in `measures.md` exist and evaluate without error (KPIs, audio aggregates, time-intel YoY / 30-day, and `Avg Popularity by Country`). The 4 Overview KPIs (`Tracks`, `Distinct Artists`, `Avg Popularity`, `% Explicit`) are additionally confirmed from the committed file's report layer. Names in `measures.md` are aligned to the file (lowercase tables, bare count names).
 
-- [ ] **C4. Build the smoke chart row.**
-  - Acceptance: One report page named "Overview" contains a row of KPI cards (`# Tracks`, `# Distinct Artists`, `Avg Popularity`, `% Explicit`). Refresh from disk works without errors.
+- [x] **C4. Build the smoke chart row.**
+  - Acceptance: One report page named "Overview" contains a row of KPI cards (`Tracks`, `Distinct Artists`, `Avg Popularity`, `% Explicit`). Refresh from disk works without errors.
   - Verify: numbers in the cards match the numbers computed in `notebooks/01_data_profile.ipynb`.
   - Files: `powerbi/dashboard.pbix`.
   - Depends on: C3.
+  - Status (2026-06-01): ✅ **verified in Power BI Desktop** — refresh-from-disk succeeds with no errors and the 4 KPI values match expected results. The "Overview" page shows the cards left→right: `Tracks` · `Distinct Artists` · `Avg Popularity` · `% Explicit` (4th correctly swapped off `Avg Rank`), also confirmed from the file's `Report/Layout`.
 
-### Gate G4 — First chart works
+### Gate G4 — First chart works ✅ PASSED (2026-06-01)
 
-> Stop and review. KPI numbers match the profile notebook. Refresh round-trip works. Only then split into parallel D-track work.
+> KPI numbers match the profile notebook. Refresh round-trip works. Cleared to split into parallel D-track work.
+>
+> **Status: PASSED — manually verified in Power BI Desktop (2026-06-01).** All four gate
+> conditions confirmed by opening the file: (a) refresh-from-disk succeeds with no errors,
+> (b) the 4 Overview KPI values match expected results, (c) all required relationships exist
+> and `dim_date` is marked as the Date Table, (d) the required measures in `measures.md` exist
+> and evaluate correctly. Independently corroborated from the committed file's `Report/Layout`
+> + `DiagramLayout` (Overview page, 4 correctly-bound KPI cards, all 6 model tables).
+> Naming note: the `g4_remediation.md` runbook was only partially applied (card swap yes;
+> PascalCase table rename + `#`-prefixed measure names no) — the team **accepted the file's
+> lowercase table names and bare measure names as-is**, and `measures.md` / `data_model.md`
+> were aligned to the file. **Phase D is unblocked** — see `tasks/phase_c_summary.md`.
 
 ---
 

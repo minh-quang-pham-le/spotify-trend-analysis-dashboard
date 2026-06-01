@@ -4,9 +4,17 @@ Binding contract between `data/processed/*.csv` and `dashboard.pbix`. Renaming o
 
 See `SPEC.md §7` for the rationale behind every choice.
 
+> **Power BI table names are the lowercase, CSV-derived names** — `fact_track_snapshot`,
+> `dim_track`, `dim_artist`, `dim_album`, `dim_date`, `dim_country` — verified 2026-06-01
+> from the committed `.pbix` (`DiagramLayout` lists all six table nodes in lowercase).
+> The section headings below use those exact names. An earlier draft used PascalCase
+> (`Fact_TrackSnapshot`, …) as an aspirational contract; the Gate-G4 rename to PascalCase
+> was never applied, and the team decided to accept the file's lowercase names and align
+> the docs instead (see `measures.md` and `g4_remediation.md`).
+
 ## Tables
 
-### Fact_TrackSnapshot (`fact_track_snapshot.csv`)
+### fact_track_snapshot (`fact_track_snapshot.csv`)
 
 Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle dataset is a static catalog (no time/country dimension), the grain collapses to one row per track and the country/date FKs become optional.
 
@@ -21,7 +29,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | rank | int ≥ 1 | yes | Chart position (`daily_rank`, 1–50) on that day/country |
 | daily_streams | int ≥ 0 | yes | **Absent in the Asaniczka source** — column stays empty / is dropped. See Gate-G1 note. |
 
-### Dim_Track (`dim_track.csv`)
+### dim_track (`dim_track.csv`)
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
@@ -40,7 +48,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | instrumentalness | float [0, 1] | yes | |
 | loudness | float (dB) | yes | Typically [−60, 0] |
 
-### Dim_Artist (`dim_artist.csv`)
+### dim_artist (`dim_artist.csv`)
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
@@ -48,7 +56,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | artist_name | string | no | Display name (primary artist; `artists` is a comma-delimited list — 40.7% multi-artist) |
 | primary_genre | string | yes | **Absent in the Asaniczka source** — will be empty. See Gate-G1 note. |
 
-### Dim_Album (`dim_album.csv`)
+### dim_album (`dim_album.csv`)
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
@@ -57,7 +65,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | release_date | date | yes | |
 | total_tracks | int ≥ 1 | yes | |
 
-### Dim_Date (`dim_date.csv`)
+### dim_date (`dim_date.csv`)
 
 | Column | Type | Notes |
 |---|---|---|
@@ -73,7 +81,7 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | week_of_year | int [1, 53] | |
 | is_weekend | bool | |
 
-### Dim_Country (`dim_country.csv`) — only if multi-country dataset
+### dim_country (`dim_country.csv`) — only if multi-country dataset
 
 | Column | Type | Notes |
 |---|---|---|
@@ -84,14 +92,18 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 ## Relationships (Power BI Manage Relationships)
 
 ```
-Fact_TrackSnapshot[track_key]   ──*──→ Dim_Track[track_key]    (cardinality: many-to-one)
-Fact_TrackSnapshot[artist_key]  ──*──→ Dim_Artist[artist_key]  (many-to-one)
-Fact_TrackSnapshot[album_key]   ──*──→ Dim_Album[album_key]    (many-to-one)
-Fact_TrackSnapshot[date_key]    ──*──→ Dim_Date[date_key]      (many-to-one)
-Fact_TrackSnapshot[country_key] ──*──→ Dim_Country[country_key] (many-to-one, only if applicable)
+fact_track_snapshot[track_key]   ──*──→ dim_track[track_key]    (cardinality: many-to-one)
+fact_track_snapshot[artist_key]  ──*──→ dim_artist[artist_key]  (many-to-one)
+fact_track_snapshot[album_key]   ──*──→ dim_album[album_key]    (many-to-one)
+fact_track_snapshot[date_key]    ──*──→ dim_date[date_key]      (many-to-one)
+fact_track_snapshot[country_key] ──*──→ dim_country[country_key] (many-to-one, only if applicable)
 ```
 
 All relationships are *single direction* (Dim → Fact filter propagation), and *active*.
+The committed `.pbix` lists all six tables in `DiagramLayout`; the relationship **edges**
+live in the compressed `DataModel` part — **verified present in *Model view*** in Power BI
+Desktop (Gate G4, 2026-06-01): all five Dim→Fact relationships exist with the cardinality
+above, and `dim_date` is marked as the Date Table.
 
 ## Refresh checklist (after every `make build`)
 
@@ -101,7 +113,7 @@ All relationships are *single direction* (Dim → Fact filter propagation), and 
 4. Verify *Model view* — all five relationships still exist.
 5. Spot-check one chart per page renders without error.
 
-## Gate G1 — schema reconciliation (2026-05-31, pending team sign-off)
+## Gate G1 — schema reconciliation (2026-05-31, **locked in**)
 
 Profiling the real Asaniczka snapshot (`notebooks/01_data_profile.ipynb`, 2,110,316 rows, 2023-10-18 → 2025-06-11) showed it diverges from the `SPEC.md §7` assumptions this contract was first written against. `src/config.py` now encodes the reconciliation (`RAW_TO_CANONICAL_COLUMNS`, `PRIMARY_TRACK_ID_COLUMN`, `ABSENT_EXPECTED_COLUMNS`, `EXTRA_AUDIO_FEATURE_COLS`, `GLOBAL_COUNTRY_KEY`). The column-name renames are applied above. **Three items below change project boundaries and need team sign-off before Phase B:**
 
