@@ -151,11 +151,77 @@ high-energy/high-valence corner.
 
 ### Chart 4 — Temporal evolution of audio features (line)
 
-*TODO during Implement phase. Anchor: Cleveland & McGill + Bertin — position over time encodes ordered quantitative change.*
+**Dashboard page:** Temporal Trends · task **D3**
+**File reference:** `dashboard.pbix` → page "Temporal Trends" → visual "Feature evolution by release year"
+
+**1. Question answered.**
+How has the sonic character of charting music evolved, by track **release year**?
+
+**2. Chart type & encoding.**
+- Chart type: **multi-series line chart** (one line per audio feature).
+- X axis: release **year** → horizontal **position** (ordered/time).
+- Y axis: mean feature value, 0–1 → vertical **position** on a common scale.
+- Color: feature name (danceability / energy / valence / acousticness) → categorical hue (≤4 series, colorblind-safe).
+- Restrict the axis to **release_year ≥ 2010** (every such year has ≥100 tracks; pre-2010 is too sparse).
+
+**3. Theory citation.**
+Position on a common scale (the most accurately decoded channel) carries both the time axis
+and the magnitude; a connected line is the canonical idiom for a trend over an ordered domain.
+> TODO: cite Cleveland & McGill (1984) — position along a common scale is the most accurate
+> graphical-perception task. — *documents/<cleveland-mcgill>.pdf, slide N*
+> TODO: cite Bertin / Munzner — line marks over an ordered (time) key encode trend; the
+> *connection* invites reading slope/change. — *documents/<bertin-or-munzner>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Stacked area of the four features** — would imply the features sum to a meaningful whole; they don't (each is an independent 0–1 score), so stacking is semantically false.
+- **Grouped bars per year** — 16 years × 4 features = 64 bars; the trend (the question) is far harder to read than four lines.
+- **Small multiples (one mini-line per feature)** — viable, and a good fallback if the four lines overlap too much, but it sacrifices direct cross-feature comparison at a given year.
+
+**5. Trade-offs accepted.**
+- **Survivorship / recency bias (important).** These are tracks *charting in 2023–2025*, so pre-2023 points are catalogue *survivors* (classics still charting), **not** a representative sample of their era. The chart shows "the sonic profile of today's charting tracks, by release year" — not "how all music changed." 80.9% of tracks are 2023–2025; older years are thin. State this in the report.
+- **Line overlap.** danceability/energy/valence/acousticness can cross; mitigate with distinct colors + tooltips, or switch to small multiples if cluttered.
+- Only the **[0,1] ratio features** share this axis; `tempo` (BPM) and `loudness` (dB) are excluded (different scales) — they belong on the Audio Anatomy page.
+
+**Evidence & report talking points (per-distinct-track means by release year):**
+- **Danceability rose** ~0.60 (2011) → **0.68–0.69** (2023–2025).
+- **Valence (positivity) fell** 0.62 (2010) → **~0.51–0.53** (2017–2025), then plateaued — charting music got modestly *less* upbeat over the 2010s.
+- **Acousticness is lowest in the newest releases** (0.243 in 2025 vs ~0.27–0.39 earlier) — more produced/electronic.
+- **Energy is U-shaped, not a clean trend** — 0.69 (2010) → dip ~0.58 (2020) → 0.67 (2025); rebuts a simple "music is getting calmer" narrative.
 
 ### Chart 5 — Explicit-share over time (stacked area)
 
-*TODO during Implement phase.*
+**Dashboard page:** Temporal Trends · task **D3**
+**File reference:** `dashboard.pbix` → page "Temporal Trends" → visual "Explicit share by release year"
+
+**1. Question answered.**
+Is explicit content becoming more dominant among charting tracks, by release year?
+
+**2. Chart type & encoding.**
+- Chart type: **100% stacked area** (explicit vs. non-explicit share).
+- X axis: release **year** → position (ordered/time).
+- Y axis: share of distinct tracks (0–100%) → length within the stack.
+- Color: `explicit` (True / False) → 2-class categorical (colorblind-safe, explicit = the accent hue).
+
+**3. Theory citation.**
+Part-to-whole composition over an ordered (time) domain is the canonical use of a stacked area;
+the baseline series is read by position, the band thickness by length.
+> TODO: cite Few / Munzner — stacked area for part-to-whole evolution over time; caution that
+> only the bottom band has a stable baseline. — *documents/<few-or-munzner>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Pie chart per year** — destroys the trend (the actual question); 16 pies can't be compared.
+- **Single line of `% Explicit`** — leaner and arguably clearer (the split is one number); we keep the stacked area per SPEC §8, but a `% Explicit` line is the recommended companion / tooltip.
+- **Clustered bars (explicit vs non-explicit count) per year** — emphasises raw counts (dominated by 2024) over the *share* trend we care about.
+
+**5. Trade-offs accepted.**
+- **Two-class stacked area is partly redundant** (non-explicit = 100% − explicit); mitigated by also reporting the `% Explicit` value. 
+- **Survivorship bias** (same as Chart 4) — pre-2023 explicit shares come from few, survivor tracks.
+- **Annual grain hides a sub-year spike** — see talking point below; offer a **year-quarter drill on 2023–2025** to reveal it.
+
+**Evidence & report talking points (share of distinct tracks that are explicit, by release year):**
+- **Explicit share roughly 7×'d**: ~5–8% (2010–2013) → ~15–23% (2017–2022) → **~37–38% (2023–2025)**.
+- **The jump is concentrated at 2022→2023** (21% → 37%) — a step change, not a gradual climb.
+- **Quarterly reveals a 2023-Q4 spike**: 2023-Q3 = 28% → **2023-Q4 = 44%** → settles ~37–39%. The annual 2023 figure (37%) averages this away — a genuinely non-obvious finding worth a sentence in the report (and a reason to keep the optional quarterly view).
 
 ### Chart 6 — Top 20 artists (horizontal bar)
 
