@@ -143,6 +143,11 @@ SUM(fact_track_snapshot[popularity])
 > is the recommended ranking measure; add this only if you want the "aggregate popularity"
 > label. Format `#,0`.
 
+> **D3 (temporal trends) & D5 (audio anatomy): no new measures.** D3 reuses
+> `Avg Danceability/Energy/Valence/Acousticness`, `% Explicit`, and `Tracks` grouped by the new
+> `dim_track[release_year]` (denormalized in the pipeline, commit dd3cffb). D5's heatmap reads
+> the precomputed `corr_audio_features.csv` table directly — no measure needed.
+
 ## Authoring rules
 
 - **One measure per row in this file.** No silent duplicates in the model.

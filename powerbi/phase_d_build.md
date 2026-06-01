@@ -189,19 +189,22 @@ points). **Year-quarter is too sparse for older years** — use it only as an **
 2023–2025** (10 quarters), where it exposes the 2023-Q4 explicit spike (28%→44%) the annual view
 hides.
 
-### ⚠ Modeling decision (PENDING — pick one before building)
+### ✅ Modeling decision — RESOLVED (2026-06-01): Approach B implemented
+
+> **`release_year` + `release_quarter` are now on `dim_track`** (pipeline regenerated — re-run
+> `make build` and **Refresh** in Power BI to pick up the two new columns + `corr_audio_features.csv`).
+> The build steps below work as written. The approaches are kept below for the record.
 
 `release_date` lives on `dim_album`; features/`explicit` live on `dim_track`. With the model's
 single-direction Dim→Fact relationships, **you cannot group a `dim_track` measure by a
 `dim_album` attribute directly** (the album filter reaches the fact but not `dim_track`). Two
 fixes:
 
-**Approach B — denormalize (RECOMMENDED).** Add `release_year` (int) and `release_quarter`
-(text, e.g. `2024-Q1`) to **`dim_track`** in the pipeline (`build_dim_track`, from the track's
-earliest album `release_date`). Then everything below is a trivial single-table group-by and
+**Approach B — denormalize (CHOSEN & IMPLEMENTED).** `release_year` (int) and `release_quarter`
+(text, e.g. `2024-Q1`) are now built onto **`dim_track`** by `build_dim_track` (from the track's
+earliest album `release_date`). Everything below is a trivial single-table group-by and
 **reuses existing measures** (`Avg Danceability/Energy/Valence/Acousticness`, `% Explicit`,
-`Tracks`). Cost: re-run `make build` + Refresh (additive columns — does not break D1/D2). Also
-unblocks D5's "by release-year bucket". *Requires team OK — schema/`data_model.md` change.*
+`Tracks`). Additive columns — does not break D1/D2/D4. Also unblocks D5's "by release-year bucket". ✅ Done.
 
 **Approach A — DAX only (fallback, no pipeline change).** Add a calc column on `dim_album`
 (`release_year = YEAR(dim_album[release_date])`, since Auto date/time is off), and author new
@@ -213,8 +216,8 @@ AVERAGEX(SUMMARIZE(Fact_TrackSnapshot, dim_track[track_key], dim_track[energy]),
 (…one per feature, plus an explicit-share variant). More measures, more complex DAX; use only if
 a pipeline rebuild is undesirable.
 
-> The steps below assume **Approach B**. For A, swap `dim_track[release_year]` → the
-> `dim_album` calc column and the `Avg <feature>` measures → the `(by release)` measures.
+> The steps below use **Approach B** (now implemented). Approach A is retained only as the
+> no-rebuild alternative; you should not need it.
 
 ### Measures
 **Approach B: none new** — reuse `Avg Danceability`, `Avg Energy`, `Avg Valence`,
@@ -338,25 +341,25 @@ verify the diagonal = 1.0 and the matrix is symmetric.
 
 ### Part A — Correlation heatmap (Chart 7) — ready to build
 
-Power BI has no built-in correlation matrix. Three ways, pick one (⚠ open decision):
+**Decision (2026-06-01): Approach 2 (precomputed CSV) chosen & IMPLEMENTED** — the pipeline now
+writes `data/processed/corr_audio_features.csv` (81 rows: `feature_x`, `feature_y`, `r`).
+Build steps:
 
-- **Approach 1 — Python/R visual (RECOMMENDED, no pipeline change).** Drop a **Python visual**,
-  add the 9 feature columns from `dim_track`, and plot:
-  ```python
-  import seaborn as sns, matplotlib.pyplot as plt
-  c = dataset.corr()                       # dataset = the 9 feature columns Power BI passes in
-  sns.heatmap(c, annot=True, fmt=".2f", cmap="vlag", vmin=-1, vmax=1, square=True)
-  plt.tight_layout(); plt.show()
-  ```
-  Requires Python configured in Power BI Desktop (pandas + seaborn). Static image, but exact.
-- **Approach 2 — precomputed correlation CSV (cleanest/reproducible, NEEDS APPROVAL).** Add a
-  pipeline step that writes `data/processed/corr_audio_features.csv` (9×9 long form:
-  `feature_x, feature_y, r`), load it, and use a **Matrix** visual (rows = feature_x, cols =
-  feature_y, values = `r`) with background **conditional formatting** (diverging −1..+1). This is
-  a new processed file → a `data_model.md` / pipeline change (deferred for now, like D3).
-- **Approach 3 — DAX measure matrix (native, clumsy).** An unpivoted feature table on both axes +
-  a Pearson-`r` measure (SUMX pattern). ~1 measure but a fiddly model; the SPEC explicitly allows
-  skipping this in favour of a Python visual.
+1. After `make build` + Refresh, load the new query and confirm the table **`corr_audio_features`**
+   is in the model (add it via the `pProcessedFolder` parameter like the other CSVs — see
+   `power_query.md`; promote headers; types: `feature_x`/`feature_y` text, `r` decimal).
+2. Insert a **Matrix** visual → **Rows** = `feature_x`, **Columns** = `feature_y`,
+   **Values** = `r` (set the value aggregation to **Average** — one row per pair, so it's a no-op).
+3. **Format → Cell elements → Background color → fx** → gradient on `r`, diverging
+   (−1 = blue, 0 = white, +1 = red); optionally show `r` to 2 decimals as the cell text.
+4. Title "Audio-feature correlation".
+
+Alternatives (not used):
+- **Approach 1 — Python/R visual.** Drop a Python visual, add the 9 `dim_track` feature columns,
+  `sns.heatmap(dataset.corr(), annot=True, fmt=".2f", cmap="vlag", vmin=-1, vmax=1)`. Requires
+  Python (pandas+seaborn) in Power BI Desktop.
+- **Approach 3 — DAX measure matrix (native, clumsy).** Unpivoted feature table on both axes +
+  a Pearson-`r` SUMX measure. Fiddly; SPEC allows skipping it.
 
 **Verify (any approach)** against this matrix (Pearson r, n = 24,976; **diagonal = 1.0,
 symmetric**):
@@ -376,15 +379,22 @@ symmetric**):
 Sanity: strongest cell is energy×loudness (+0.70); energy×acousticness (−0.50) is the strongest
 negative. Export → `report/figures/d5_correlation_heatmap.png`.
 
-### Part B — Box plot by group (Chart 8) — ⚠ BLOCKED, build later
+### Part B — Box plot by group (Chart 8) — needs a box-plot visual
 
-Two blockers:
-1. **No native box plot** — install the AppSource **"Box and Whisker chart"** custom visual, or
-   use a Python visual (`seaborn.boxplot`).
-2. **Release-year bucket needs `release_year`**, which lives on `dim_album`, not `dim_track` —
-   the **deferred D3 modeling decision**. Denormalising `release_year` onto `dim_track`
-   (D3 Approach B) makes the bucket a trivial calc column.
+1. ✅ **Release-year bucket is now available** — `dim_track[release_year]` exists. Add a calc
+   column, e.g.:
+   ```DAX
+   Release bucket =
+   SWITCH(TRUE(),
+       ISBLANK(dim_track[release_year]), "Unknown",
+       dim_track[release_year] >= 2024, "2024+",
+       dim_track[release_year] >= 2023, "2023",
+       dim_track[release_year] >= 2020, "2020-22",
+       "2019 & earlier")
+   ```
+2. ⚠ **No native box plot — the one remaining blocker.** Install the AppSource **"Box and
+   Whisker chart"** (MAQ Software) custom visual, or use a Python visual (`seaborn.boxplot`).
 
-**Recommendation:** defer Chart 8 until the D3 `release_year` decision is made; then bucket
-(e.g. `≤2019 / 2020–2022 / 2023 / 2024 / 2025`) and box-plot a feature (danceability or energy).
-Export → `report/figures/d5_feature_boxplot.png` when built.
+Then: category/X = `Release bucket`, value/Y = a feature (danceability or energy). Survivorship
+caveat applies (pre-2023 buckets are thin / survivor-biased). Export →
+`report/figures/d5_feature_boxplot.png`.
