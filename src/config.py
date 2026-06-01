@@ -45,6 +45,11 @@ DIM_ALBUM: str = "dim_album.csv"
 DIM_DATE: str = "dim_date.csv"
 DIM_COUNTRY: str = "dim_country.csv"
 
+# Derived analytical table (NOT part of the star schema): the audio-feature
+# Pearson correlation matrix in long form, consumed by the Audio Anatomy heatmap
+# (task D5). Exported alongside the star CSVs but not FK-validated.
+CORR_AUDIO_FEATURES: str = "corr_audio_features.csv"
+
 # ---------------------------------------------------------------------------
 # Column groupings
 # ---------------------------------------------------------------------------

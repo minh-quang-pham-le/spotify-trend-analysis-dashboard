@@ -59,6 +59,12 @@ def run(raw_path: Path | None = None, output_dir: Path | None = None) -> int:
         return 1
     print("validate:  passed")
 
+    # Derived analytical table (not part of the star schema, so added after
+    # validation): audio-feature correlation matrix for the Audio Anatomy heatmap.
+    tables[config.CORR_AUDIO_FEATURES] = transform.build_corr_audio_features(
+        tables[config.DIM_TRACK]
+    )
+
     out = Path(output_dir) if output_dir is not None else config.PROCESSED_DIR
     export.export_tables(tables, output_dir=out)
     print(f"export:    wrote {len(tables)} CSVs to {out}")

@@ -35,6 +35,16 @@ def test_run_output_row_counts_match_fixture(tmp_path: Path) -> None:
     assert len(dim_track) == 4  # 4 tracks
 
 
+def test_run_writes_corr_audio_features(tmp_path: Path) -> None:
+    pipeline.run(raw_path=FIXTURE, output_dir=tmp_path)
+    path = tmp_path / config.CORR_AUDIO_FEATURES
+    assert path.is_file()
+    corr = pd.read_csv(path, encoding=config.CSV_ENCODING)
+    assert list(corr.columns) == ["feature_x", "feature_y", "r"]
+    diag = corr.loc[corr["feature_x"] == corr["feature_y"], "r"]
+    assert (diag.round(6) == 1.0).all()
+
+
 def test_run_returns_1_and_skips_export_on_validation_failure(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(
         validate,

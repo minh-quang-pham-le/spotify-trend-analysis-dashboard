@@ -47,6 +47,8 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | speechiness | float [0, 1] | yes | |
 | instrumentalness | float [0, 1] | yes | |
 | loudness | float (dB) | yes | Typically [−60, 0] |
+| release_year | int (YYYY) | yes | Track's **earliest** album release year, denormalized from `dim_album` so features can be sliced by release time without a cross-dim hop (D3/D5). NA when release_date is missing (5 rows in the 2025-06-11 snapshot). |
+| release_quarter | string | yes | `YYYY-Qn` (e.g. `2024-Q1`), same source/derivation as `release_year`. |
 
 ### dim_artist (`dim_artist.csv`)
 
@@ -88,6 +90,18 @@ Grain: one row per `(track, country, snapshot_date)`. If the chosen Kaggle datas
 | country_key | string (ISO-2) | Primary key, uppercase. Blank-country "Global" chart rows map to the sentinel `GLOBAL` (`config.GLOBAL_COUNTRY_KEY`). |
 | country_name | string | English name ("Global" for the worldwide chart) |
 | region | string | "Americas", "Europe", "Asia", "Africa", "Oceania", or "Global" |
+
+### corr_audio_features (`corr_audio_features.csv`) — derived, NOT part of the star schema
+
+Audio-feature Pearson correlation matrix in long form, for the Audio Anatomy heatmap (D5).
+Computed over distinct tracks (`dim_track`); exported alongside the star CSVs but **not**
+FK-related to any table (it's a standalone lookup the heatmap visual reads). 81 rows (9×9).
+
+| Column | Type | Notes |
+|---|---|---|
+| feature_x | string | One of the 9 audio features (row) |
+| feature_y | string | One of the 9 audio features (column) |
+| r | float [−1, 1] | Pearson correlation; diagonal = 1.0; symmetric |
 
 ## Relationships (Power BI Manage Relationships)
 

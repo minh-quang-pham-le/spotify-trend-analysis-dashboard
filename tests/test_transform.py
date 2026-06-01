@@ -7,6 +7,8 @@ frames via the ``make_cleaned`` factory.
 
 from __future__ import annotations
 
+import pandas as pd
+
 from src import config, transform
 from src.config import AUDIO_FEATURE_COLS, GLOBAL_COUNTRY_KEY
 
@@ -54,6 +56,25 @@ def test_dim_track_preserves_audio_feature_values(cleaned_df) -> None:
     t1 = dim.loc[dim["track_name"] == "Sunrise"].iloc[0]
     assert t1["danceability"] == 0.80
     assert t1["valence"] == 0.75
+
+
+def test_dim_track_has_release_year_and_quarter(cleaned_df) -> None:
+    # D5/D3 groundwork: release_year/quarter denormalized onto Dim_Track from the
+    # track's (earliest) album release date, so features can be sliced by release time.
+    dim = transform.build_dim_track(cleaned_df).set_index("track_name")
+    assert dim.loc["Sunrise", "release_year"] == 2024  # Dawn, 2024-01-15
+    assert dim.loc["Sunrise", "release_quarter"] == "2024-Q1"
+    assert dim.loc["Midnight", "release_quarter"] == "2024-Q2"  # Night, 2024-06-01
+    assert dim.loc["Café Olé", "release_year"] == 2023  # Fiesta, 2023-11-20
+    assert dim.loc["Café Olé", "release_quarter"] == "2023-Q4"
+    assert dim.loc["Echoes", "release_year"] == 2025  # Reverb, 2025-02-10
+
+
+def test_dim_track_release_year_null_when_release_date_missing(make_cleaned) -> None:
+    cleaned = make_cleaned([{"album_release_date": None}])
+    dim = transform.build_dim_track(cleaned)
+    assert pd.isna(dim["release_year"].iloc[0])
+    assert pd.isna(dim["release_quarter"].iloc[0])
 
 
 # ---------------------------------------------------------------------------
@@ -285,3 +306,26 @@ def test_fact_collapses_duplicate_grain_tuples(make_cleaned) -> None:
     ]
     fact = transform.build_fact_track_snapshot(make_cleaned(rows))
     assert len(fact) == 1
+
+
+# ---------------------------------------------------------------------------
+# D5 — build_corr_audio_features (audio-feature Pearson correlation, long form)
+# ---------------------------------------------------------------------------
+
+
+def test_corr_audio_features_long_form_and_diagonal(cleaned_df) -> None:
+    dim_track = transform.build_dim_track(cleaned_df)
+    corr = transform.build_corr_audio_features(dim_track)
+    assert list(corr.columns) == ["feature_x", "feature_y", "r"]
+    n = len(AUDIO_FEATURE_COLS)
+    assert len(corr) == n * n  # full matrix, no cells dropped
+    diag = corr.loc[corr["feature_x"] == corr["feature_y"], "r"]
+    assert (diag == 1.0).all()  # every feature varies across the 4 fixture tracks
+
+
+def test_corr_audio_features_is_symmetric(cleaned_df) -> None:
+    dim_track = transform.build_dim_track(cleaned_df)
+    r = transform.build_corr_audio_features(dim_track).set_index(["feature_x", "feature_y"])["r"]
+    for fx in AUDIO_FEATURE_COLS:
+        for fy in AUDIO_FEATURE_COLS:
+            assert r[(fx, fy)] == r[(fy, fx)]

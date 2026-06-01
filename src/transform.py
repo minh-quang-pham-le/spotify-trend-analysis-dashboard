@@ -92,20 +92,58 @@ _DIM_TRACK_COLS = (
     "explicit",
     "duration_ms",
     *config.AUDIO_FEATURE_COLS,
+    # Release time denormalized from the track's album (Dim_Album holds release_date,
+    # but features live here — denormalizing lets Power BI slice features by release
+    # year without a cross-dim hop). See data_model.md + powerbi/phase_d_build.md (D3/D5).
+    "release_year",
+    "release_quarter",
 )
 
 
 def build_dim_track(cleaned: pd.DataFrame) -> pd.DataFrame:
-    """Collapse to one row per track. Audio features (static per recording) live here."""
+    """Collapse to one row per track. Audio features (static per recording) live here.
+
+    ``release_year`` / ``release_quarter`` are derived from the track's **earliest**
+    album ``release_date`` (the original release), so the sonic profile can be sliced
+    by release time. Both are nullable (NA when the release date is missing).
+    """
     df = add_keys(cleaned)
-    dim = (
+    base = (
         df.sort_values("snapshot_date")
         .drop_duplicates(subset="track_key", keep="first")
-        .loc[:, list(_DIM_TRACK_COLS)]
         .reset_index(drop=True)
     )
+
+    earliest = df.groupby("track_key")["release_date"].min()
+    year = earliest.dt.year.astype("Int64")
+    quarter = earliest.dt.quarter.astype("Int64")
+    release_quarter = year.astype("string") + "-Q" + quarter.astype("string")  # NA → NA
+    base["release_year"] = base["track_key"].map(year).astype("Int64")
+    base["release_quarter"] = base["track_key"].map(release_quarter).astype("string")
+
+    dim = base.loc[:, list(_DIM_TRACK_COLS)].reset_index(drop=True)
     assert dim["track_key"].is_unique, "track_key must be unique in Dim_Track"
     return dim
+
+
+def build_corr_audio_features(dim_track: pd.DataFrame) -> pd.DataFrame:
+    """Pairwise Pearson correlation of the audio features, in long (tidy) form.
+
+    Returns one row per ordered ``(feature_x, feature_y)`` pair — the full n-by-n matrix
+    (no cells dropped) — with column ``r`` the correlation. Computed over distinct
+    tracks (``Dim_Track``), so it describes the catalogue, not chart-weighted exposure.
+    Consumed by the Audio Anatomy heatmap (task D5).
+    """
+    feats = list(config.AUDIO_FEATURE_COLS)
+    matrix = dim_track.loc[:, feats].corr(method="pearson")
+    long = (
+        matrix.reset_index(names="feature_x")
+        .melt(id_vars="feature_x", var_name="feature_y", value_name="r")
+        .loc[:, ["feature_x", "feature_y", "r"]]
+        .reset_index(drop=True)
+    )
+    long["r"] = long["r"].round(6)
+    return long
 
 
 def build_dim_artist(cleaned: pd.DataFrame) -> pd.DataFrame:
