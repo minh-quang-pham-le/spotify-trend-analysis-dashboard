@@ -277,11 +277,73 @@ a rank.
 
 ### Chart 7 — Audio-feature correlation matrix (heatmap)
 
-*TODO during Implement phase. Anchor: trade-off — color is low in Cleveland & McGill but appropriate for a many-pair overview where position would explode.*
+**Dashboard page:** Audio Anatomy · task **D5**
+**File reference:** `dashboard.pbix` → page "Audio Anatomy" → visual "Feature correlation heatmap"
+
+**1. Question answered.**
+Which audio features co-vary, and are any redundant?
+
+**2. Chart type & encoding.**
+- Chart type: **correlation heatmap** (9×9 matrix over the audio features).
+- Rows & columns: the 9 features (danceability, energy, valence, tempo, acousticness, liveness, speechiness, instrumentalness, loudness) → categorical position.
+- Cell **color**: Pearson *r* on a **diverging** scale (−1 blue ↔ 0 white ↔ +1 red).
+- Cell **label**: the numeric *r* (compensates for color's low decoding accuracy).
+
+**3. Theory citation.**
+This is a deliberate **trade-off**: color ranks low in the perceptual hierarchy, but for an
+all-pairs overview (81 cells) a position/length encoding would explode; the heatmap is the
+standard idiom for the "find the strong cells" gestalt task, and numeric labels restore precision.
+> TODO: cite Cleveland & McGill — color/saturation are low-accuracy; acceptable here because the
+> task is pattern-spotting, not precise readout. — *documents/<cleveland-mcgill>.pdf, slide N*
+> TODO: cite Munzner — matrix view as the idiom for dense pairwise relationships.
+> — *documents/<munzner>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Scatterplot matrix (SPLOM)** — shows the raw joint distributions but 9×9 = 36 off-diagonal panels is far too dense for a dashboard tile.
+- **Table of correlation numbers** — exact but gives no gestalt; you can't *see* the clusters.
+- **Network/force graph of correlations** — pretty but imprecise and hard to read exact pairs.
+
+**5. Trade-offs accepted.**
+- **Color imprecision** — mitigated with on-cell numeric labels.
+- **Pearson captures only *linear* association** — a strong non-linear relationship would read as weak; note this in the report.
+- Computed over **distinct tracks** (`dim_track`), not snapshots, so it describes the catalogue, not chart-weighted exposure.
+
+**Evidence & report talking points (Pearson r, n = 24,976 distinct tracks; matrix verified symmetric, diagonal = 1.0):**
+- **energy ↔ loudness = +0.70** — by far the strongest pair; the two are **near-redundant** (louder = more energetic). A dimension-reduction angle for the report: one could drop `loudness` from feature panels with little information loss.
+- **energy ↔ acousticness = −0.50** (and acousticness ↔ loudness = −0.33): the clearest semantic axis — *acoustic ↔ produced/loud*.
+- **valence ↔ danceability = +0.36, valence ↔ energy = +0.35**: "happier" tracks are modestly more danceable and energetic.
+- **Most pairs are weak (|r| < 0.25)** — `tempo`, `speechiness`, `liveness`, `instrumentalness` are largely orthogonal to the rest → the audio-feature space is **genuinely multidimensional** (justifies using several features rather than collapsing to one).
 
 ### Chart 8 — Feature distribution by group (box / violin)
 
-*TODO during Implement phase.*
+**Dashboard page:** Audio Anatomy · task **D5**
+**File reference:** `dashboard.pbix` → page "Audio Anatomy" → visual "Feature dispersion by release-year bucket"
+
+**1. Question answered.**
+How does the *dispersion* (not just the mean) of a chosen feature change across groups? Groups =
+**release-year buckets** (the source has no genre — SPEC §8 substitution).
+
+**2. Chart type & encoding.**
+- Chart type: **box plot** (or violin), one box per release-year bucket.
+- X axis: release-year bucket (e.g., `≤2019`, `2020–2022`, `2023`, `2024`, `2025`) → categorical position.
+- Y axis: chosen feature value (e.g., danceability or energy) → position; box = IQR + median, whiskers, outlier dots.
+
+**3. Theory citation.**
+> TODO: cite Tukey / Munzner — the box plot is the canonical idiom for comparing a distribution's
+> spread and skew across groups. — *documents/<munzner-or-few>.pdf, slide N*
+
+**4. Alternatives considered and rejected.**
+- **Bar of group means** — hides dispersion, which *is* the question.
+- **Violin plot** — richer (shows multimodality) but heavier; a fallback if the box hides shape.
+- **Jittered strip plot** — overplots badly at ~25k tracks.
+
+**5. Trade-offs accepted & ⚠ dependency.**
+- **Blocked on two things:** (a) Power BI has **no native box plot** — needs a custom visual
+  (AppSource "Box & Whisker") or a Python/R visual; (b) the **release-year bucket depends on the
+  deferred D3 `release_year` decision** (release date lives on `dim_album`, not `dim_track`).
+  **Recommendation: build Chart 8 after the D3 modeling decision is resolved** (denormalising
+  `release_year` onto `dim_track` makes the bucket trivial). Survivorship caveat applies (pre-2023
+  buckets are thin, survivor-biased).
 
 ### Chart 9 — Geographic map (filled map)
 

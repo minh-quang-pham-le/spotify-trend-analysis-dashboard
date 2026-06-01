@@ -192,10 +192,14 @@ Each task ends with: (a) chart built, (b) screenshot exported to `report/figures
   - **Verify target:** top-1 = **Bad Bunny** (51,567 appearances, ~1.6× #2). Top-5: Bad Bunny, Billie Eilish, KAROL G, Feid, Sabrina Carpenter. **Remaining (Power BI Desktop):** new "Artists" page → horizontal bar (Y=`dim_artist[artist_name]`, X=`Snapshots`, Top-N=20, sorted desc) → `dim_date` time slicer → export `report/figures/d4_top_artists_bar.png`.
   - **Findings (talking points):** Bad Bunny dominance + Latin/reggaetón over-representation in the top ranks; Taylor Swift's 100 distinct charting tracks (≈2× any peer); "biggest artist" is metric-dependent (appearances→Bad Bunny, tracks→Taylor Swift, avg pop→Billie Eilish/Mariah Carey). Limitation: primary-artist-only (40.7% multi-artist undercounts features).
 
-- [ ] **D5. Page: Audio Anatomy — correlation heatmap + group box plot.**
+- [~] **D5. Page: Audio Anatomy — correlation heatmap + group box plot.**
   - Acceptance: Matrix visual showing pairwise Pearson correlation across audio features (or a Python visual if matrix is too clumsy). Box plot of one chosen feature by genre or year-bucket.
   - Verify: correlation diagonal is 1.0; symmetric.
   - Depends on: C4.
+  - Status (2026-06-01): **groundwork done** (no Power BI Desktop yet). 9×9 Pearson matrix computed (verified diagonal=1.0, symmetric). Justification = `report/chart_justifications.md` Charts 7 & 8; build steps + full matrix for verification = `powerbi/phase_d_build.md` D5.
+    - **Part A — heatmap: READY to build.** ⚠ Rendering-method decision open: (1) Python visual [recommended, no pipeline change], (2) precomputed `corr_audio_features.csv` [cleanest/reproducible but a pipeline+`data_model.md` change — deferred like D3], (3) DAX measure matrix [native but clumsy].
+    - **Part B — box plot: BLOCKED.** Needs (a) a non-native box-plot visual (AppSource "Box & Whisker" or Python) **and** (b) `release_year` buckets → the **deferred D3 modeling decision**. Build after D3 is resolved.
+  - **Findings (talking points):** energy↔loudness **+0.70** (near-redundant — could drop loudness); energy↔acousticness **−0.50** (acoustic↔produced axis); valence↔danceability/energy ≈ +0.35 (happier = more danceable/energetic); most pairs |r|<0.25 → audio space is genuinely multidimensional. Pearson = linear only; computed over distinct tracks.
 
 - [ ] **D6. Page: Geography — filled map.** *(skip if `Dim_Country` not in scope.)*
   - Acceptance: Filled map by country, color = `Avg Popularity by Country`. Hover tooltip with country, avg popularity, top artist.

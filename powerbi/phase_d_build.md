@@ -326,3 +326,65 @@ metric-choice point.)
 
 ### Step 6 — evidence
 Export a screenshot to `report/figures/d4_top_artists_bar.png`.
+
+---
+
+## D5 — Audio Anatomy: correlation heatmap + box plot
+
+**Goal:** on a new **Audio Anatomy** page — (a) a 9×9 audio-feature correlation heatmap, and
+(b) a box plot of one feature by release-year bucket.
+**Acceptance (todo.md D5):** pairwise-Pearson matrix (or Python visual); box plot by group;
+verify the diagonal = 1.0 and the matrix is symmetric.
+
+### Part A — Correlation heatmap (Chart 7) — ready to build
+
+Power BI has no built-in correlation matrix. Three ways, pick one (⚠ open decision):
+
+- **Approach 1 — Python/R visual (RECOMMENDED, no pipeline change).** Drop a **Python visual**,
+  add the 9 feature columns from `dim_track`, and plot:
+  ```python
+  import seaborn as sns, matplotlib.pyplot as plt
+  c = dataset.corr()                       # dataset = the 9 feature columns Power BI passes in
+  sns.heatmap(c, annot=True, fmt=".2f", cmap="vlag", vmin=-1, vmax=1, square=True)
+  plt.tight_layout(); plt.show()
+  ```
+  Requires Python configured in Power BI Desktop (pandas + seaborn). Static image, but exact.
+- **Approach 2 — precomputed correlation CSV (cleanest/reproducible, NEEDS APPROVAL).** Add a
+  pipeline step that writes `data/processed/corr_audio_features.csv` (9×9 long form:
+  `feature_x, feature_y, r`), load it, and use a **Matrix** visual (rows = feature_x, cols =
+  feature_y, values = `r`) with background **conditional formatting** (diverging −1..+1). This is
+  a new processed file → a `data_model.md` / pipeline change (deferred for now, like D3).
+- **Approach 3 — DAX measure matrix (native, clumsy).** An unpivoted feature table on both axes +
+  a Pearson-`r` measure (SUMX pattern). ~1 measure but a fiddly model; the SPEC explicitly allows
+  skipping this in favour of a Python visual.
+
+**Verify (any approach)** against this matrix (Pearson r, n = 24,976; **diagonal = 1.0,
+symmetric**):
+
+|              | dance | energy | val | tempo | acoust | live | speech | instr | loud |
+|---|---|---|---|---|---|---|---|---|---|
+| **dance**    | 1.00 | 0.17 | 0.36 | -0.11 | -0.24 | -0.12 | 0.15 | -0.04 | 0.15 |
+| **energy**   | 0.17 | 1.00 | 0.35 | 0.12 | **-0.50** | 0.15 | 0.01 | -0.14 | **0.70** |
+| **valence**  | 0.36 | 0.35 | 1.00 | 0.05 | -0.09 | 0.03 | 0.04 | -0.09 | 0.25 |
+| **tempo**    | -0.11 | 0.12 | 0.05 | 1.00 | -0.09 | 0.02 | 0.02 | 0.01 | 0.07 |
+| **acoust**   | -0.24 | -0.50 | -0.09 | -0.09 | 1.00 | -0.04 | -0.03 | 0.03 | -0.33 |
+| **live**     | -0.12 | 0.15 | 0.03 | 0.02 | -0.04 | 1.00 | 0.03 | -0.04 | 0.09 |
+| **speech**   | 0.15 | 0.01 | 0.04 | 0.02 | -0.03 | 0.03 | 1.00 | -0.08 | -0.04 |
+| **instr**    | -0.04 | -0.14 | -0.09 | 0.01 | 0.03 | -0.04 | -0.08 | 1.00 | -0.35 |
+| **loud**     | 0.15 | 0.70 | 0.25 | 0.07 | -0.33 | 0.09 | -0.04 | -0.35 | 1.00 |
+
+Sanity: strongest cell is energy×loudness (+0.70); energy×acousticness (−0.50) is the strongest
+negative. Export → `report/figures/d5_correlation_heatmap.png`.
+
+### Part B — Box plot by group (Chart 8) — ⚠ BLOCKED, build later
+
+Two blockers:
+1. **No native box plot** — install the AppSource **"Box and Whisker chart"** custom visual, or
+   use a Python visual (`seaborn.boxplot`).
+2. **Release-year bucket needs `release_year`**, which lives on `dim_album`, not `dim_track` —
+   the **deferred D3 modeling decision**. Denormalising `release_year` onto `dim_track`
+   (D3 Approach B) makes the bucket a trivial calc column.
+
+**Recommendation:** defer Chart 8 until the D3 `release_year` decision is made; then bucket
+(e.g. `≤2019 / 2020–2022 / 2023 / 2024 / 2025`) and box-plot a feature (danceability or energy).
+Export → `report/figures/d5_feature_boxplot.png` when built.
